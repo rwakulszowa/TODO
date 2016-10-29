@@ -1,0 +1,17 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./src/node.js"></script>
+<script>
+var n = new Node([], [], []);
+console.log(n.shape());
+
+var n2 = new Node([], [], [n, n]);
+console.log(n2.shape());
+
+var n3 = new Node([], [], [n, n2]);
+console.log(n3.shape());
+</script>
+</head>
+
