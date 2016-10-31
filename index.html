@@ -26,7 +26,7 @@ var n = new Node(
 		[]);
 
 var segment = new Segment(container, size, {x:0, y:0 });
-var segments = segment.vSplit();
+var segments = segment.vSplit(4).slice(2);
 
 Painter.barChart(segments[0], n.input);
 Painter.barChart(segments[1], n.output);

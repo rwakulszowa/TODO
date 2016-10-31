@@ -5,12 +5,28 @@ var Segment = function(area, size, offset) {
 	this.id = "seg" + Math.round(Math.random() * 100);
 }
 
-Segment.prototype.vSplit = function() {
-	var takenWidth = this.size.x / 2;
-	return [new Segment(this.area,
-			    { x: this.size.x - takenWidth, y: this.size.y },
-			    this.offset),
-		new Segment(this.area,
-			    { x: takenWidth, y: this.size.y },
-			    { x: this.offset.x + takenWidth, y: this.offset.y })];
+
+Segment.prototype.vSplit = function(divs) {
+    var width = this.size.x / divs;
+
+    return new Array(divs).fill(0).map(
+        function(el, i) {
+            return new Segment(
+                    this.area,
+                    { x: width, y: this.size.y },
+                    { x: i * width, y: this.offset.y }); },
+            this);
+}
+
+
+Segment.prototype.hSplit = function(divs) {
+    var height = this.size.y / divs;
+
+    return new Array(divs).fill(0).map(
+        function(el, i) {
+            return new Segment(
+                    this.area,
+                    { x: this.size.x, y: height },
+                    { x: this.offset.x, y: i * height }); },
+            this);
 }
