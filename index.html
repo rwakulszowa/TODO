@@ -5,17 +5,16 @@
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="./src/node.js"></script>
 <script src="./src/painter.js"></script>
+<script src="./src/segment.js"></script>
 <div id="container"></div>
 <script>
 
-var size = { width: 480, height: 320 };
+var size = { x: 480, y: 320 };
 
-var containers = [0, 0].map(function() {
-	return d3.select("body")
+var container = d3.select("body")
     	  .append("svg")
-	    .attr("width", size.width)
-	    .attr("height", size.height);
-});
+	    .attr("width", size.x)
+	    .attr("height", size.y);
 
 function wrapData(data) {
     return data.map((d, i) => ( { x: i, y: d } ));
@@ -26,8 +25,11 @@ var n = new Node(
 		wrapData([4, 3, 2, 1]),
 		[]);
 
-Painter.barChart(containers[0].node(), size, n.input);
-Painter.barChart(containers[1].node(), size, n.output);
+var segment = new Segment(container, size, {x:0, y:0 });
+var segments = segment.vSplit();
+
+Painter.barChart(segments[0], n.input);
+Painter.barChart(segments[1], n.output);
 </script>
 </head>
 
