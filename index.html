@@ -21,15 +21,18 @@ function wrapData(data) {
 }
 
 var n = new Node(
-		wrapData([1, 2, 3, 4]),
-		wrapData([4, 3, 2, 1]),
-		[]);
+    		wrapData([1, 2, 3, 4]),
+	    	wrapData([4, 3, 2, 1]),
+		    [
+                new Node(
+                    wrapData([4, 1, 2, 3]),
+                    wrapData([4, 3, 1, 2]),
+                    [])]);
 
 var segment = new Segment(container, size, {x:0, y:0 });
-var segments = segment.split(1, 3)[0];
 
-Painter.barChart(segments[0], n.input);
-Painter.barChart(segments[2], n.output);
+Painter.callTree(segment, n);
+
 </script>
 </head>
 

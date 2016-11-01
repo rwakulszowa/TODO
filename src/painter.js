@@ -35,3 +35,25 @@ Painter.barChart = function(segment, data) {
 	    .text(function(d) { return d.y; });
 }
 
+Painter.callTree = function(segment, node) {
+    var isLeaf = node.children.length == 0;
+    var baseDivs = 2;  // node has at least 2 plots (in, out)
+
+    if (isLeaf) {
+        var segments = segment.split(1, baseDivs);
+
+        Painter.barChart(segments[0][0], node.input);
+        Painter.barChart(segments[0][1], node.output);
+    } else {
+        var rows = baseDivs + node.children.length;
+        var segments = segment.split(2, rows);
+        
+        Painter.barChart(segments[0][0], node.input);
+        Painter.barChart(segments[0][rows - 1], node.output);
+        
+        for (var i in node.children) {
+            i = parseInt(i);  // js is weird
+            Painter.callTree(segments[1][i + 1], node.children[i]);
+        }
+    }
+}
