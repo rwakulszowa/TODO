@@ -12,7 +12,7 @@ Painter.barChart = function(segment, data) {
 	    .domain(data.map(function(d) { return d.x; }));
 
 	var y = d3.scaleLinear()
-	    .range([offset.y + size.y, offset.y])
+	    .range([size.y, 0])
 	    .domain([0, d3.max(data.map(function(d) { return d.y; }))]);
 
 	var bar = chart.selectAll("." + id)
@@ -24,13 +24,13 @@ Painter.barChart = function(segment, data) {
 	    });
 
 	bar.append("rect")
-	    .attr("y", function(d) { return y(d.y); })
-	    .attr("height", function(d) { return size.y - y(d.y); })  //TODO: flip the y range
+	    .attr("y", function(d) { return offset.y +  y(d.y); })
+	    .attr("height", function(d) { return size.y - y(d.y); })
 	    .attr("width", x.bandwidth());
 
 	bar.append("text")
 	    .attr("x", x.bandwidth() / 2)
-	    .attr("y", function(d) { return y(d.y) + 3; })
+	    .attr("y", function(d) { return offset.y + y(d.y) + 3; })
 	    .attr("dy", ".75em")
 	    .text(function(d) { return d.y; });
 }

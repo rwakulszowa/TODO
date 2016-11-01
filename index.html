@@ -26,10 +26,10 @@ var n = new Node(
 		[]);
 
 var segment = new Segment(container, size, {x:0, y:0 });
-var segments = segment.vSplit(4).slice(2);
+var segments = segment.hSplit(3);
 
 Painter.barChart(segments[0], n.input);
-Painter.barChart(segments[1], n.output);
+Painter.barChart(segments[2], n.output);
 </script>
 </head>
 
