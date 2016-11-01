@@ -14,7 +14,7 @@ Segment.prototype.vSplit = function(divs) {
             return new Segment(
                     this.area,
                     { x: width, y: this.size.y },
-                    { x: i * width, y: this.offset.y }); },
+                    { x: i * width + this.offset.x, y: this.offset.y }); },
             this);
 }
 
@@ -27,6 +27,6 @@ Segment.prototype.hSplit = function(divs) {
             return new Segment(
                     this.area,
                     { x: this.size.x, y: height },
-                    { x: this.offset.x, y: i * height }); },
+                    { x: this.offset.x, y: i * height + this.offset.y }); },
             this);
 }
