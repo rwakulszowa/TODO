@@ -6,27 +6,22 @@ var Segment = function(area, size, offset) {
 }
 
 
-Segment.prototype.vSplit = function(divs) {
-    var width = this.size.x / divs;
+Segment.prototype.split = function(xDivs, yDivs) {
+    var width = this.size.x / xDivs;
+    var height = this.size.y / yDivs;
 
-    return new Array(divs).fill(0).map(
-        function(el, i) {
-            return new Segment(
-                    this.area,
-                    { x: width, y: this.size.y },
-                    { x: i * width + this.offset.x, y: this.offset.y }); },
-            this);
-}
+    // 2D Array of shape [xDivs, yDivs]
+    var ans = new Array(xDivs).fill(0).map(
+        function() { return new Array(yDivs).fill(0); });
 
-
-Segment.prototype.hSplit = function(divs) {
-    var height = this.size.y / divs;
-
-    return new Array(divs).fill(0).map(
-        function(el, i) {
-            return new Segment(
-                    this.area,
-                    { x: this.size.x, y: height },
-                    { x: this.offset.x, y: i * height + this.offset.y }); },
+    return ans.map(
+        function(row, i) {
+            return row.map(
+                function(cell, j) {
+                    return new Segment(
+                        this.area,
+                        { x: width, y: height },
+                        { x: i * width + this.offset.x, y: j * height + this.offset.y }) },
+                this) },
             this);
 }
