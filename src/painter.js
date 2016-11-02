@@ -27,12 +27,6 @@ Painter.barChart = function(segment, data) {
 	    .attr("y", function(d) { return offset.y +  y(d.y); })
 	    .attr("height", function(d) { return size.y - y(d.y); })
 	    .attr("width", x.bandwidth());
-
-	bar.append("text")
-	    .attr("x", x.bandwidth() / 2)
-	    .attr("y", function(d) { return offset.y + y(d.y) + 3; })
-	    .attr("dy", ".75em")
-	    .text(function(d) { return d.y; });
 }
 
 Painter.callTree = function(segment, node) {
