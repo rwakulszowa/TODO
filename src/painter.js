@@ -1,53 +1,65 @@
 var Painter = { };
 
-Painter.barChart = function(segment, data) {
-	var chart = segment.area;
-	var size = segment.size;
-	var offset = segment.offset;
-	var id = segment.id;
+
+Painter.barChart = function(sel) {
+
+    var cell = sel.datum(),
+        shape = cell.shape(),
+        data = cell.d();
 
 	var x = d3.scaleBand()
-	    .range([offset.x, offset.x + size.x])
+	    .range([0, shape.x])
 	    .padding(0.1)
-	    .domain(data.map(function(d) { return d.x; }));
+	    .domain(data.map(function(d, i) { return i; }));
 
 	var y = d3.scaleLinear()
-	    .range([size.y, 0])
-	    .domain([0, d3.max(data.map(function(d) { return d.y; }))]);
+	    .range([shape.y, 0])
+	    .domain([0, d3.max(data)]);
 
-	var bar = chart.selectAll("." + id)
+	var bar = sel.selectAll("g")
 	    .data(data)
 	  .enter().append("g")
-	    .attr("class", "." + id)
-	    .attr("transform", function(d) {
-		    return "translate(" + x(d.x) + ",0)";
+	    .attr("transform", function(d, i) {
+		    return "translate(" + x(i) + ",0)";
 	    });
 
 	bar.append("rect")
-	    .attr("y", function(d) { return offset.y +  y(d.y); })
-	    .attr("height", function(d) { return size.y - y(d.y); })
+	    .attr("y", function(d) { return y(d); })
+	    .attr("height", function(d) { return shape.y - y(d); })
 	    .attr("width", x.bandwidth());
 }
 
-Painter.callTree = function(segment, node) {
-    var isLeaf = node.children.length == 0;
-    var baseDivs = 2;  // node has at least 2 plots (in, out)
 
-    if (isLeaf) {
-        var segments = segment.split(1, baseDivs);
+Painter.callTree = function(sel) {
 
-        Painter.barChart(segments[0][0], node.input);
-        Painter.barChart(segments[0][1], node.output);
-    } else {
-        var rows = baseDivs + node.children.length;
-        var segments = segment.split(2, rows);
+    function dig(i, j, node) {
+
+        mesh.pick(i, j, node.input);
         
-        Painter.barChart(segments[0][0], node.input);
-        Painter.barChart(segments[0][rows - 1], node.output);
-        
-        for (var i in node.children) {
-            i = parseInt(i);  // js is weird
-            Painter.callTree(segments[1][i + 1], node.children[i]);
+        for (var c in node.children) {
+            var child = node.children[c];
+            dig(i + 1, j + 1, child);
         }
+
+        mesh.pick(i, j + node.shape().y, node.output);
     }
+
+    var cell = sel.datum(),
+        shape = cell.shape(),
+        node = cell.d();
+
+    var mesh = d3.mesh();
+    mesh.x().domain([0, shape.x]);
+    mesh.y().domain([0, shape.y]);
+    mesh.data([[]]);
+    
+    dig(0, 0, node);
+
+    sel.selectAll("g")
+        .data(mesh.flat().filter(c => c.d() != null))
+      .enter().append("g")
+        .attr("transform", function(d) {
+            return "translate(" + d.x().a + "," + d.y().a + ")"; })
+        .each(function() {
+            d3.select(this).call(Painter.barChart); });
 }

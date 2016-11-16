@@ -5,7 +5,7 @@
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="./src/node.js"></script>
 <script src="./src/painter.js"></script>
-<script src="./src/segment.js"></script>
+<script src="https://raw.githubusercontent.com/rwakulszowa/d3-mesh/v0.3.1/examples/d3-mesh.js"></script>
 <div id="container"></div>
 <script>
 
@@ -16,22 +16,25 @@ var container = d3.select("body")
 	    .attr("width", size.x)
 	    .attr("height", size.y);
 
-function wrapData(data) {
-    return data.map((d, i) => ( { x: i, y: d } ));
-}
-
 var n = new Node(
-    		wrapData([1, 2, 3, 4]),
-	    	wrapData([4, 3, 2, 1]),
+    		[1, 2, 3, 4],
+	    	[4, 3, 2, 1],
 		    [
                 new Node(
-                    wrapData([4, 1, 2, 3]),
-                    wrapData([4, 3, 1, 2]),
+                    [4, 1, 2, 3],
+                    [4, 3, 1, 2],
                     [])]);
 
-var segment = new Segment(container, size, {x:0, y:0 });
+var m = d3.mesh();
+m.x().domain([0, 480]);
+m.y().domain([0, 320]);
+m.data([[n]]);
 
-Painter.callTree(segment, n);
+var plot = container.selectAll("g")
+    .data(m.flat())
+  .enter().append("g");
+
+Painter.callTree(plot, size, n);
 
 </script>
 </head>
