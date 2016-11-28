@@ -7,25 +7,32 @@ Painter.barChart = function(sel) {
         shape = cell.shape(),
         data = cell.d();
 
+    var margin = 0.1;
+
+    var chart = sel.append("g")
+        .attr("class", "chart")
+        .attr("transform", "translate(" + margin * shape.x + "," + margin * shape.y + ")");
+
 	var x = d3.scaleBand()
-	    .range([0, shape.x])
+	    .range([margin * shape.x, (1 - margin) * shape.x])
 	    .padding(0.1)
 	    .domain(data.map(function(d, i) { return i; }));
 
 	var y = d3.scaleLinear()
-	    .range([shape.y, 0])
+	    .range([(1 - margin) * shape.y, margin * shape.y])
 	    .domain([0, d3.max(data)]);
 
-	var bar = sel.selectAll("g")
+	var bar = chart.selectAll("g")
 	    .data(data)
 	  .enter().append("g")
+        .attr("class", "bar")
 	    .attr("transform", function(d, i) {
 		    return "translate(" + x(i) + ",0)";
 	    });
 
 	bar.append("rect")
 	    .attr("y", function(d) { return y(d); })
-	    .attr("height", function(d) { return shape.y - y(d); })
+	    .attr("height", function(d) { return (1 - margin) * shape.y - y(d); })
 	    .attr("width", x.bandwidth());
 }
 
