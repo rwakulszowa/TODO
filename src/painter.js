@@ -1,5 +1,22 @@
 var Painter = { };
 
+Painter.paint = function(sel) {
+
+    function hasKeys(o, keys) {
+        var keys = keys.sort();
+        var oKeys = Object.keys(o);
+        return oKeys.every(k => keys.indexOf(k) != -1);
+    }
+
+    var data = sel.datum().d();
+    if (hasKeys(data, ["input", "output", "children"])) {
+        Painter.callTree(sel);
+    } else if (Array.isArray(data) && data.every(d => Number.isFinite(d))) {
+        Painter.barChart(sel);
+    } else {
+        console.log("Unknown data type" + data);
+    }
+}
 
 Painter.barChart = function(sel) {
 
@@ -71,5 +88,5 @@ Painter.callTree = function(sel) {
         .attr("transform", function(d) {
             return "translate(" + d.x().a + "," + d.y().a + ")"; })
         .each(function() {
-            d3.select(this).call(Painter.barChart); });
+            d3.select(this).call(Painter.paint); });
 }
