@@ -21,23 +21,43 @@ var container = d3.select("body")
 	    .attr("width", size.x)
 	    .attr("height", size.y);
 
-var n = new Node(
-    		[1, 2, 3, 4],
-	    	[4, 3, 2, 1],
-		    [
-                new Node(
-                    [4, 1, 2, 3],
-                    [4, 3, 1, 2],
-                    []),
-                new Node(
-                    [4, 3, 1, 2],
-                    [4, 3, 2, 1],
-                    [])]);
+
+function insertionSort(left, right) {
+
+    function insert(dest, el) {
+        var index = dest.findIndex(x => x > el);
+        index = index == -1 ? dest.length : index;
+        dest.splice(index, 0, el);
+    }
+
+    if (right.length == 0) {
+        return { in: left, out: left };
+    } else {
+        var newLeft = left.slice(),
+            head = right[0],
+            tail = right.slice(1);
+        insert(newLeft, head);
+
+        var child = insertionSort(newLeft, tail);
+        return { in: left.concat(right), out: child.out, children: [child] };
+    }
+
+}
+
+function makeNodes(data) {
+    if (!data.hasOwnProperty("children")) {
+        return new Node(data.in, data.out, []);
+    } else {
+        return new Node(data.in, data.out, data.children.map(makeNodes));
+    }
+}
+
+var data = insertionSort([], [1,5,2,4,8,6]);
 
 var m = d3.mesh();
 m.x().domain([0, 480]);
 m.y().domain([0, 320]);
-m.data([[n]]);
+m.data([[makeNodes(data)]]);
 
 var plot = container.selectAll("g")
     .data(m.flat())
