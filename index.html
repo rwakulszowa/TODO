@@ -31,7 +31,7 @@ function insertionSort(left, right) {
     }
 
     if (right.length == 0) {
-        return { in: left, out: left };
+        return { input: left, output: left, children: [] };
     } else {
         var newLeft = left.slice(),
             head = right[0],
@@ -39,25 +39,15 @@ function insertionSort(left, right) {
         insert(newLeft, head);
 
         var child = insertionSort(newLeft, tail);
-        return { in: left.concat(right), out: child.out, children: [child] };
+        return { input: left.concat(right), output: child.output, children: [child] };
     }
 
 }
-
-function makeNodes(data) {
-    if (!data.hasOwnProperty("children")) {
-        return new Node(data.in, data.out, []);
-    } else {
-        return new Node(data.in, data.out, data.children.map(makeNodes));
-    }
-}
-
-var data = insertionSort([], [1,5,2,4,8,6]);
 
 var m = d3.mesh();
 m.x().domain([0, 480]);
 m.y().domain([0, 320]);
-m.data([[makeNodes(data)]]);
+m.data([[ insertionSort([], [1,5,2,4,8,6]) ]]);
 
 var plot = container.selectAll("g")
     .data(m.flat())

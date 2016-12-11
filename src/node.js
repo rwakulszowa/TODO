@@ -1,13 +1,7 @@
-var Node = function(input, output, children) {
-	this.input = input;
-	this.output = output;
-	this.children  = children;
-}
-
-Node.prototype.shape = function() {
+Node.shape = function(node) {
 	var defaultShape = { x: 1, y: 2 };
-	var children = this.children.map(function(node) {
-		return node.shape();
+	var children = node.children.map(function(n) {
+		return Node.shape(n);
 	});
 
 	var totalX = children.reduce(function(acc, shape) {

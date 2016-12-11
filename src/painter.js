@@ -58,17 +58,20 @@ Painter.callTree = function(sel) {
 
     function dig(i, j, node) {
 
-        mesh.pick(i, j, node.input);
+        var yOffset = 0;
+        mesh.pick(i, j + yOffset, node.input);
+        yOffset += 1;
         
-        //TODO: find a simpler solution to calculate relative position
-        var yOffset = 1;
         for (var c in node.children) {
             var child = node.children[c];
-            dig(i + 1, j + yOffset, child);
-            yOffset += child.shape().y;
+            var dug = dig(i + 1, j + yOffset, child);
+            yOffset += dug;
         }
 
-        mesh.pick(i, j + node.shape().y - 1, node.output);
+        mesh.pick(i, j + yOffset, node.output);
+        yOffset += 1;
+
+        return yOffset;
     }
 
     var cell = sel.datum(),
