@@ -1,0 +1,31 @@
+{
+  "name": "splendid",
+  "version": "0.0.1",
+  "description": "Simple visualisation of complex data",
+  "main": "build/splendid.js",
+  "directories": {
+    "example": "examples",
+    "test": "test"
+  },
+  "scripts": {
+    "pretest": "rm -rf build && mkdir build && rollup -f umd -n splendid -o build/splendid.js -- index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rwakulszowa/splendid.git"
+  },
+  "keywords": [
+    "d3",
+    "graph",
+    "plot",
+    "data",
+    "viz"
+  ],
+  "author": "rwakulszowa",
+  "license": "MIT",
+  "homepage": "https://github.com/rwakulszowa/splendid",
+  "devDependencies": {
+    "rollup": "^0.37.0"
+  }
+}

@@ -3,8 +3,7 @@
 <head>
 <meta charset="utf-8">
 <script src="https://d3js.org/d3.v4.min.js"></script>
-<script src="./src/node.js"></script>
-<script src="./src/painter.js"></script>
+<script src="../build/splendid.js"></script>
 <script src="https://rawgit.com/rwakulszowa/d3-mesh/v0.3.1/examples/d3-mesh.js"></script>
 <style>
 .bar {
@@ -45,15 +44,15 @@ function insertionSort(left, right) {
 }
 
 var m = d3.mesh();
-m.x().domain([0, 480]);
-m.y().domain([0, 320]);
+m.x().domain([0, size.x]);
+m.y().domain([0, size.y]);
 m.data([[ insertionSort([], [1,5,2,4,8,6]) ]]);
 
 var plot = container.selectAll("g")
     .data(m.flat())
   .enter().append("g");
 
-Painter.paint(plot);
+splendid.painter.paint(plot);
 
 </script>
 </head>

@@ -1,6 +1,6 @@
-var Painter = { };
+var painter = { };
 
-Painter.paint = function(sel) {
+painter.paint = function(sel) {
 
     function hasKeys(o, keys) {
         var keys = keys.sort();
@@ -10,15 +10,15 @@ Painter.paint = function(sel) {
 
     var data = sel.datum().d();
     if (hasKeys(data, ["input", "output", "children"])) {
-        Painter.callTree(sel);
+        painter.callTree(sel);
     } else if (Array.isArray(data) && data.every(d => Number.isFinite(d))) {
-        Painter.barChart(sel);
+        painter.barChart(sel);
     } else {
         console.log("Unknown data type" + data);
     }
 }
 
-Painter.barChart = function(sel) {
+painter.barChart = function(sel) {
 
     var cell = sel.datum(),
         shape = cell.shape(),
@@ -54,7 +54,7 @@ Painter.barChart = function(sel) {
 }
 
 
-Painter.callTree = function(sel) {
+painter.callTree = function(sel) {
 
     function dig(i, j, node) {
 
@@ -91,5 +91,7 @@ Painter.callTree = function(sel) {
         .attr("transform", function(d) {
             return "translate(" + d.x().a + "," + d.y().a + ")"; })
         .each(function() {
-            d3.select(this).call(Painter.paint); });
+            d3.select(this).call(painter.paint); });
 }
+
+export default painter;

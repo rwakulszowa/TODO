@@ -1,7 +1,9 @@
-Node.shape = function(node) {
+var node = { };
+
+node.shape = function(obj) {
 	var defaultShape = { x: 1, y: 2 };
-	var children = node.children.map(function(n) {
-		return Node.shape(n);
+	var children = obj.children.map(function(n) {
+		return node.shape(n);
 	});
 
 	var totalX = children.reduce(function(acc, shape) {
@@ -14,3 +16,6 @@ Node.shape = function(node) {
 
 	return { x: totalX, y: totalY };
 }
+
+
+export default node;
