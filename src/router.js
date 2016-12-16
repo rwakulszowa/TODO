@@ -3,6 +3,7 @@ var router = { };
 router.route = function(data) {
     if (isCallTree(data)) return "callTree"
     else if (isNumericArray(data)) return "numArray"
+    else if (isAnyArray(data)) return "anyArray"
     else return null;
 }
 
@@ -19,6 +20,10 @@ function isCallTree(o) {
 function isNumericArray(data) {
     return Array.isArray(data) &&
         data.every(d => Number.isFinite(d));
+}
+
+function isAnyArray(data) {
+    return Array.isArray(data);
 }
 
 export default router;
