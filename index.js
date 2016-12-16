@@ -1,2 +1,2 @@
 export {default as painter} from "./src/painter";
-export {default as node} from "./src/node";
+export {default as router} from "./src/router";

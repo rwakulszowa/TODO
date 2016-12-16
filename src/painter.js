@@ -1,20 +1,23 @@
+import router from "./router"
+
+
 var painter = { };
 
 painter.paint = function(sel) {
 
-    function hasKeys(o, keys) {
-        var keys = keys.sort();
-        var oKeys = Object.keys(o);
-        return oKeys.every(k => keys.indexOf(k) != -1);
-    }
-
     var data = sel.datum().d();
-    if (hasKeys(data, ["input", "output", "children"])) {
-        painter.callTree(sel);
-    } else if (Array.isArray(data) && data.every(d => Number.isFinite(d))) {
-        painter.barChart(sel);
-    } else {
-        console.log("Unknown data type" + data);
+    var kind = router.route(data);
+
+    switch (kind) {
+        case "callTree":
+            painter.callTree(sel);
+            break;
+        case "numArray":
+            painter.barChart(sel);
+            break;
+        default:
+            console.log("Unsupported data type");
+
     }
 }
 
