@@ -1,11 +1,11 @@
 var router = { };
 
-//TODO: handle array of objects
 //TODO: create an array of (condition, handler), check one by one, return a pair
 router.route = function(data) {
     if (isCallTree(data)) return "callTree"
     else if (isObject(data)) return "objectTree"
     else if (isNumericArray(data)) return "numArray"
+    else if (isObjectArray(data)) return "objectArray"
     else if (isAnyArray(data)) return "anyArray"
     else return null;
 }
@@ -29,6 +29,11 @@ function isCallTree(o) {
 function isNumericArray(data) {
     return Array.isArray(data) &&
         data.every(d => Number.isFinite(d));
+}
+
+function isObjectArray(data) {
+    return Array.isArray(data) &&
+        data.every(isObject);
 }
 
 //TODO: add some requirements for object structure

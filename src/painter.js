@@ -15,6 +15,9 @@ painter.paint = function(sel) {
         case "callTree":
             painter.callTree(sel);
             break;
+        case "objectArray":
+            painter.objectArray(sel);
+            break;
         case "numArray":
             painter.barChart(sel);
             break;
@@ -180,5 +183,31 @@ painter.objectTree = function(sel) {
         .each(function() {
             d3.select(this).call(painter.paint); });
 }
+
+painter.objectArray = function(sel) {
+
+    var cell = sel.datum(),
+        shape = cell.shape(),
+        data = cell.d();
+
+    var mesh = d3.mesh();
+    mesh.x().domain([0, shape.x]);
+    mesh.y().domain([0, shape.y]);
+    mesh.data([[]]);
+
+    for (var i in data) {
+        var obj = data[i];
+        mesh.pick(0, i, obj);
+    }
+
+    sel.selectAll("g")
+        .data(mesh.flat().filter(c => c.d() != null))
+      .enter().append("g")
+        .attr("transform", function(d) {
+            return "translate(" + d.x().a + "," + d.y().a + ")"; })
+        .each(function() {
+            d3.select(this).call(painter.paint); });
+}
+
 
 export default painter;
