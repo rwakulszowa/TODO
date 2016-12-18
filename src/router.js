@@ -5,8 +5,8 @@ router.route = function(data) {
     if (isCallTree(data)) return "callTree"
     else if (isObject(data)) return "objectTree"
     else if (isNumericArray(data)) return "numArray"
+    else if (isXYZArray(data)) return "xyzArray"
     else if (isObjectArray(data)) return "objectArray"
-    else if (isAnyArray(data)) return "anyArray"
     else return null;
 }
 
@@ -36,9 +36,13 @@ function isObjectArray(data) {
         data.every(isObject);
 }
 
-//TODO: add some requirements for object structure
-function isAnyArray(data) {
-    return Array.isArray(data);
+function isXYZArray(data) {
+    if (Array.isArray(data) && data.length > 0) {
+        return data.every(d => hasKeys(d, ["x", "y", "z"]));
+    } else {
+        return false;
+    }
+
 }
 
 export default router;

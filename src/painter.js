@@ -21,7 +21,7 @@ painter.paint = function(sel) {
         case "numArray":
             painter.barChart(sel);
             break;
-        case "anyArray":
+        case "xyzArray":
             painter.scatterPlot(sel);
             break;
         default:
@@ -81,19 +81,23 @@ painter.scatterPlot = function(sel) {
 
 	var x = d3.scaleLinear()
 	    .range([margin * shape.x + radius, (1 - margin) * shape.x - radius])
-	    .domain([0, data.length - 1]);
+	    .domain(d3.extent(data.map(d => d.x)));
 
 	var y = d3.scaleLinear()
-	    .range([(1 - margin) * shape.y, margin * shape.y])
-	    .domain([0, d3.max(data)]);
+	    .range([(1 - margin) * shape.y - radius, margin * shape.y + radius])
+	    .domain(d3.extent(data.map(d => d.y)));
+
+	var z = d3.scaleLinear()
+	    .range([0.1 * radius, radius])
+	    .domain(d3.extent(data.map(d => d.z)));
 
 	var circle = chart.selectAll("circle")
 	    .data(data)
 	  .enter().append("circle")
         .attr("class", "dot")
-        .attr("r", radius)
-        .attr("cx", function(d, i) { return x(i); })
-        .attr("cy", function(d) { return y(d); });
+        .attr("cx", function(d) { return x(d.x); })
+        .attr("cy", function(d) { return y(d.y); })
+        .attr("r", function(d) { return z(d.z); });
 }
 
 painter.callTree = function(sel) {
