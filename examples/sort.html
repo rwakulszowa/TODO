@@ -21,32 +21,48 @@ var container = d3.select("body")
 	    .attr("height", size.y);
 
 
-function insertionSort(left, right) {
+function mergeSort(data) {
+    var ans = {};
+    ans.input = data.slice();  // deep copy
 
-    function insert(dest, el) {
-        var index = dest.findIndex(x => x > el);
-        index = index == -1 ? dest.length : index;
-        dest.splice(index, 0, el);
+    function merge(a, b) {
+        acc = [];
+        while(true) {
+            if (a.length == 0) {
+                Array.prototype.push.apply(acc, b);
+                return acc;
+            } else if (b.length == 0) {
+                Array.prototype.push.apply(acc, a);
+                return acc;
+            } else {
+                acc.push(a[0] < b[0] ? a.shift() : b.shift());
+            }
+        }
     }
 
-    if (right.length == 0) {
-        return { input: left, output: left, children: [] };
+    if (data.length <= 1) {
+        ans.output = data.slice();
     } else {
-        var newLeft = left.slice(),
-            head = right[0],
-            tail = right.slice(1);
-        insert(newLeft, head);
+        var half = data.splice(
+            Math.floor(data.length / 2)); // the other half stays in 'data'
 
-        var child = insertionSort(newLeft, tail);
-        return { input: left.concat(right), output: child.output, children: [child] };
+        var aSorted = mergeSort(data),
+            bSorted = mergeSort(half);
+
+        var merged = merge(aSorted.output, bSorted.output);
+
+        ans.children = [aSorted, bSorted];
+        ans.output = merged;
     }
+
+    return ans;
 
 }
 
 var m = d3.mesh();
 m.x().domain([0, size.x]);
 m.y().domain([0, size.y]);
-m.data([[ insertionSort([], [1,5,2,4,8,6]) ]]);
+m.data([[ mergeSort([1,5,2,4,8,6,17,9]) ]]);
 
 var plot = container.selectAll("g")
     .data(m.flat())
