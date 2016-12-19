@@ -66,9 +66,9 @@ m.data([[ mergeSort([1,5,2,4,8,6,17,9]) ]]);
 
 var plot = container.selectAll("g")
     .data(m.flat())
-  .enter().append("g");
+    .enter().append("g");
 
-splendid.painter.paint(plot);
+new splendid.painter.Root(plot).paint();
 
 </script>
 </head>

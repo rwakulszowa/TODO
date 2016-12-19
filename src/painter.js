@@ -4,6 +4,7 @@ import router from "./router"
 var painter = { };
 
 class Painting {
+
     constructor(sel) {
         this.sel = sel;
         this.cell = sel.datum();
@@ -18,6 +19,7 @@ class Painting {
 };
 
 class ActualPainting extends Painting {
+
     constructor(sel) {
         super(sel);
         this.margin = 0.1;
@@ -29,45 +31,68 @@ class ActualPainting extends Painting {
             .attr("transform", "translate(" + this.margin * this.shape.x + "," + this.margin * this.shape.y + ")");
     }
 
+    xRange() {
+        return [this.margin * this.shape.x, (1 - this.margin) * this.shape.x];
+    }
+
+    yRange() {
+        return [(1 - this.margin) * this.shape.y, this.margin * this.shape.y];
+    }
+
 };
 
 class NotReallyAPainting extends Painting {
     
+    mesh() {
+        var mesh = d3.mesh();
+        mesh.x().domain([0, this.shape.x]);
+        mesh.y().domain([0, this.shape.y]);
+        mesh.data([[]]);
+
+        return mesh;
+    }
+
+    goOn(sel) {
+        new painter.Root(sel).paint();
+    }
+
 };
 
 
-painter.paint = function(sel) {
+painter.Root = class Root extends NotReallyAPainting {
 
-    var data = sel.datum().d();
-    var routerInstance = new router.simpleRouter();
-    var dest = routerInstance.route(data);
-
-    dest(sel);
+    paint() {
+        var self = this;
+        var routerInstance = new router.simpleRouter();
+        var dest = routerInstance.route(this.data);
+        new dest(self.sel).paint();
+    }
 
 }
 
 
 //TODO: pass data as argument, preprocess by caller
-painter.barChart = class barChart extends ActualPainting {
+painter.BarChart = class BarChart extends ActualPainting {
+
     paint() {
         var self = this;  // d3 reserves the 'this' keyword (kinda)
 
     	var x = d3.scaleBand()
-            .range([self.margin * self.shape.x, (1 - self.margin) * self.shape.x])
+            .range(self.xRange())
             .padding(0.1)
             .domain(self.data.map(function(d, i) { return i; }));
 
         var y = d3.scaleLinear()
-            .range([(1 - self.margin) * self.shape.y, self.margin * self.shape.y])
+            .range(self.yRange())
             .domain([0, d3.max(self.data)]);
 
         var bar = self.chart().selectAll("g")
             .data(self.data)
             .enter().append("g")
-            .attr("class", "bar")
-            .attr("transform", function(d, i) {
-                return "translate(" + x(i) + ",0)";
-            });
+                .attr("class", "bar")
+                .attr("transform", function(d, i) {
+                    return "translate(" + x(i) + ",0)";
+                });
 
         bar.append("rect")
             .attr("y", function(d) { return y(d); })
@@ -76,151 +101,148 @@ painter.barChart = class barChart extends ActualPainting {
     }
 }
 
-painter.scatterPlot = function(sel) {
-    //TODO refactor: get rid of repetitions; pick lin/ord scales based on input
-    var cell = sel.datum(),
-        shape = cell.shape(),
-        data = cell.d();
 
-    var margin = 0.1,
-        radius = Math.min(shape.x, shape.y) / 25;
+painter.ScatterPlot = class ScatterPlot extends ActualPainting {
 
-    var chart = sel.append("g")
-        .attr("class", "chart")
-        .attr("transform", "translate(" + margin * shape.x + "," + margin * shape.y + ")");
+    paint() {
+        var self = this;
+        var radius = Math.min(self.shape.x, self.shape.y) / 25;
 
-	var x = d3.scaleLinear()
-	    .range([margin * shape.x + radius, (1 - margin) * shape.x - radius])
-	    .domain(d3.extent(data.map(d => d.x)));
+        var baseXRange = self.xRange();
+        var x = d3.scaleLinear()
+            .range([baseXRange[0] + radius, baseXRange[1] - radius])
+            .domain(d3.extent(self.data.map(d => d.x)));
 
-	var y = d3.scaleLinear()
-	    .range([(1 - margin) * shape.y - radius, margin * shape.y + radius])
-	    .domain(d3.extent(data.map(d => d.y)));
+        var baseYRange = self.yRange();
+        var y = d3.scaleLinear()
+            .range([baseYRange[0] - radius, baseYRange[1] + radius])
+            .domain(d3.extent(self.data.map(d => d.y)));
 
-	var z = d3.scaleLinear()
-	    .range([0.1 * radius, radius])
-	    .domain(d3.extent(data.map(d => d.z)));
+        var z = d3.scaleLinear()
+            .range([0.1 * radius, radius])
+            .domain(d3.extent(self.data.map(d => d.z)));
 
-	var circle = chart.selectAll("circle")
-	    .data(data)
-	  .enter().append("circle")
-        .attr("class", "dot")
-        .attr("cx", function(d) { return x(d.x); })
-        .attr("cy", function(d) { return y(d.y); })
-        .attr("r", function(d) { return z(d.z); });
+        var circle = self.chart().selectAll("circle")
+            .data(self.data)
+            .enter().append("circle")
+                .attr("class", "dot")
+                .attr("cx", function(d) { return x(d.x); })
+                .attr("cy", function(d) { return y(d.y); })
+                .attr("r", function(d) { return z(d.z); });
+    }
+
 }
 
-painter.callTree = function(sel) {
 
-    function dig(i, j, node) {
+painter.CallTree = class CallTree extends NotReallyAPainting {
+    
+    paint() {
 
-        var yOffset = 0;
-        mesh.pick(i, j + yOffset, node.input);
-        yOffset += 1;
-        
-        for (var c in node.children) {
-            var child = node.children[c];
-            var dug = dig(i + 1, j + yOffset, child);
-            yOffset += dug;
+        function dig(i, j, node) {
+
+            var yOffset = 0;
+            mesh.pick(i, j + yOffset, node.input);
+            yOffset += 1;
+
+            for (var c in node.children) {
+                var child = node.children[c];
+                var dug = dig(i + 1, j + yOffset, child);
+                yOffset += dug;
+            }
+
+            mesh.pick(i, j + yOffset, node.output);
+            yOffset += 1;
+
+            return yOffset;
         }
 
-        mesh.pick(i, j + yOffset, node.output);
-        yOffset += 1;
+       var self = this;
 
-        return yOffset;
+       var mesh = self.mesh();
+
+       dig(0, 0, self.data);
+
+       self.sel.selectAll("g")
+           .data(mesh.flat().filter(c => c.d() != null))
+           .enter().append("g")
+               .attr("transform", function(d) {
+                   return "translate(" + d.x().a + "," + d.y().a + ")"; })
+               .each(function() {
+                   d3.select(this).call(self.goOn); });
     }
-
-    var cell = sel.datum(),
-        shape = cell.shape(),
-        node = cell.d();
-
-    var mesh = d3.mesh();
-    mesh.x().domain([0, shape.x]);
-    mesh.y().domain([0, shape.y]);
-    mesh.data([[]]);
-    
-    dig(0, 0, node);
-
-    sel.selectAll("g")
-        .data(mesh.flat().filter(c => c.d() != null))
-      .enter().append("g")
-        .attr("transform", function(d) {
-            return "translate(" + d.x().a + "," + d.y().a + ")"; })
-        .each(function() {
-            d3.select(this).call(painter.paint); });
 }
 
-painter.objectTree = function(sel) {
+
+painter.ObjectTree = class ObjectTree extends NotReallyAPainting {
     
-    function isObject(o) {
-        return o !== null &&
-            !Array.isArray(o) &&
-            typeof o === "object";
-    }
+    paint() {
 
-    function dig(i, j, obj) {
+        function isObject(o) {
+            return o !== null &&
+                !Array.isArray(o) &&
+                typeof o === "object";
+        }
 
-        var keys = Object.keys(obj).sort(),
+        function dig(i, j, obj) {
+
+            var keys = Object.keys(obj).sort(),
             yOffset = 0;
 
-        for (var key of keys) {
-            var val = obj[key];
+            for (var key of keys) {
+                var val = obj[key];
 
-            if (isObject(val)) {
-                var dug = dig(i + 1, j + yOffset, val);
-                yOffset += dug;
-            } else {
-                mesh.pick(i, j + yOffset, val);
-                yOffset += 1;
+                if (isObject(val)) {
+                    var dug = dig(i + 1, j + yOffset, val);
+                    yOffset += dug;
+                } else {
+                    mesh.pick(i, j + yOffset, val);
+                    yOffset += 1;
+                }
             }
+
+            return yOffset;
         }
 
-        return yOffset;
+        var self = this;
+
+        var mesh = self.mesh();
+
+        dig(0, 0, self.data);
+
+        self.sel.selectAll("g")
+            .data(mesh.flat().filter(c => c.d() != null))
+            .enter().append("g")
+            .attr("transform", function(d) {
+                return "translate(" + d.x().a + "," + d.y().a + ")"; })
+            .each(function() {
+                d3.select(this).call(self.goOn); });
     }
 
-    var cell = sel.datum(),
-        shape = cell.shape(),
-        node = cell.d();
-
-    var mesh = d3.mesh();
-    mesh.x().domain([0, shape.x]);
-    mesh.y().domain([0, shape.y]);
-    mesh.data([[]]);
-    
-    dig(0, 0, node);
-
-    sel.selectAll("g")
-        .data(mesh.flat().filter(c => c.d() != null))
-      .enter().append("g")
-        .attr("transform", function(d) {
-            return "translate(" + d.x().a + "," + d.y().a + ")"; })
-        .each(function() {
-            d3.select(this).call(painter.paint); });
 }
 
-painter.objectArray = function(sel) {
 
-    var cell = sel.datum(),
-        shape = cell.shape(),
-        data = cell.d();
+painter.ObjectArray = class ObjectArray extends NotReallyAPainting {
 
-    var mesh = d3.mesh();
-    mesh.x().domain([0, shape.x]);
-    mesh.y().domain([0, shape.y]);
-    mesh.data([[]]);
+    paint() {
 
-    for (var i in data) {
-        var obj = data[i];
-        mesh.pick(0, i, obj);
+        var self = this;
+
+        var mesh = this.mesh();
+
+        for (var i in self.data) {
+            var obj = self.data[i];
+            mesh.pick(0, i, obj);
+        }
+
+        self.sel.selectAll("g")
+            .data(mesh.flat().filter(c => c.d() != null))
+            .enter().append("g")
+            .attr("transform", function(d) {
+                return "translate(" + d.x().a + "," + d.y().a + ")"; })
+            .each(function() {
+                d3.select(this).call(self.goOn); });
     }
 
-    sel.selectAll("g")
-        .data(mesh.flat().filter(c => c.d() != null))
-      .enter().append("g")
-        .attr("transform", function(d) {
-            return "translate(" + d.x().a + "," + d.y().a + ")"; })
-        .each(function() {
-            d3.select(this).call(painter.paint); });
 }
 
 
