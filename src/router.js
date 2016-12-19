@@ -1,48 +1,32 @@
-var router = { };
+import analyzer from "./analyzer"
+import painter from "./painter"
 
-//TODO: create an array of (condition, handler), check one by one, return a pair
-router.route = function(data) {
-    if (isCallTree(data)) return "callTree"
-    else if (isObject(data)) return "objectTree"
-    else if (isNumericArray(data)) return "numArray"
-    else if (isXYZArray(data)) return "xyzArray"
-    else if (isObjectArray(data)) return "objectArray"
-    else return null;
-}
 
-function hasKeys(o, keys) {
-    var keys = keys.sort();
-    var oKeys = Object.keys(o);
-    return oKeys.every(k => keys.indexOf(k) != -1);
-}
+var router = {};
 
-function isObject(o) {
-    return o !== null &&
-        !Array.isArray(o) &&
-        typeof o === "object";
-}
+router.simpleRouter = class {
 
-function isCallTree(o) {
-    return hasKeys(o, ["input", "output", "children"]);
-}
-
-function isNumericArray(data) {
-    return Array.isArray(data) &&
-        data.every(d => Number.isFinite(d));
-}
-
-function isObjectArray(data) {
-    return Array.isArray(data) &&
-        data.every(isObject);
-}
-
-function isXYZArray(data) {
-    if (Array.isArray(data) && data.length > 0) {
-        return data.every(d => hasKeys(d, ["x", "y", "z"]));
-    } else {
-        return false;
+    constructor() {
+        this.patterns = [
+            [analyzer.isCallTree, painter.callTree],
+            [analyzer.isObject, painter.objectTree],
+            [analyzer.isNumericArray, painter.barChart],
+            [analyzer.isXYZArray, painter.scatterPlot],
+            [analyzer.isObjectArray, painter.objectArray]
+        ]
     }
 
-}
+    route(data) {
+        for (var pair of this.patterns) {
+            var test = pair[0],
+                dest = pair[1];
+            if (test(data)) {
+                return dest;
+            }
+        }
+        return d => { console.log("Unsupported data type: " + data); };
+    }
+
+};
 
 export default router;

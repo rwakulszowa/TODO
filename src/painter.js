@@ -6,27 +6,10 @@ var painter = { };
 painter.paint = function(sel) {
 
     var data = sel.datum().d();
-    var kind = router.route(data);
+    var routerInstance = new router.simpleRouter();
+    var dest = routerInstance.route(data);
 
-    switch (kind) {
-        case "objectTree":
-            painter.objectTree(sel);
-            break;
-        case "callTree":
-            painter.callTree(sel);
-            break;
-        case "objectArray":
-            painter.objectArray(sel);
-            break;
-        case "numArray":
-            painter.barChart(sel);
-            break;
-        case "xyzArray":
-            painter.scatterPlot(sel);
-            break;
-        default:
-            console.log("Unsupported data type");
-    }
+    dest(sel);
 
 }
 
