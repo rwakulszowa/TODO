@@ -10,7 +10,7 @@ router.simpleRouter = class {
         this.patterns = [
             [analyzer.isCallTree, painter.callTree],
             [analyzer.isObject, painter.objectTree],
-            [analyzer.isNumericArray, painter.barChart],
+            [analyzer.isNumericArray, sel => (new painter.barChart(sel).paint())],
             [analyzer.isXYZArray, painter.scatterPlot],
             [analyzer.isObjectArray, painter.objectArray]
         ]

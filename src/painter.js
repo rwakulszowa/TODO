@@ -3,6 +3,39 @@ import router from "./router"
 
 var painter = { };
 
+class Painting {
+    constructor(sel) {
+        this.sel = sel;
+        this.cell = sel.datum();
+        this.shape = this.cell.shape();
+        this.data = this.cell.d();
+    }
+
+    paint() {
+        // abstract method of sorts
+    }
+
+};
+
+class ActualPainting extends Painting {
+    constructor(sel) {
+        super(sel);
+        this.margin = 0.1;
+    }
+    
+    chart() {
+        return this.sel.append("g")
+            .attr("class", "chart")
+            .attr("transform", "translate(" + this.margin * this.shape.x + "," + this.margin * this.shape.y + ")");
+    }
+
+};
+
+class NotReallyAPainting extends Painting {
+    
+};
+
+
 painter.paint = function(sel) {
 
     var data = sel.datum().d();
@@ -13,40 +46,34 @@ painter.paint = function(sel) {
 
 }
 
+
 //TODO: pass data as argument, preprocess by caller
-painter.barChart = function(sel) {
+painter.barChart = class barChart extends ActualPainting {
+    paint() {
+        var self = this;  // d3 reserves the 'this' keyword (kinda)
 
-    var cell = sel.datum(),
-        shape = cell.shape(),
-        data = cell.d();
+    	var x = d3.scaleBand()
+            .range([self.margin * self.shape.x, (1 - self.margin) * self.shape.x])
+            .padding(0.1)
+            .domain(self.data.map(function(d, i) { return i; }));
 
-    var margin = 0.1;
+        var y = d3.scaleLinear()
+            .range([(1 - self.margin) * self.shape.y, self.margin * self.shape.y])
+            .domain([0, d3.max(self.data)]);
 
-    var chart = sel.append("g")
-        .attr("class", "chart")
-        .attr("transform", "translate(" + margin * shape.x + "," + margin * shape.y + ")");
+        var bar = self.chart().selectAll("g")
+            .data(self.data)
+            .enter().append("g")
+            .attr("class", "bar")
+            .attr("transform", function(d, i) {
+                return "translate(" + x(i) + ",0)";
+            });
 
-	var x = d3.scaleBand()
-	    .range([margin * shape.x, (1 - margin) * shape.x])
-	    .padding(0.1)
-	    .domain(data.map(function(d, i) { return i; }));
-
-	var y = d3.scaleLinear()
-	    .range([(1 - margin) * shape.y, margin * shape.y])
-	    .domain([0, d3.max(data)]);
-
-	var bar = chart.selectAll("g")
-	    .data(data)
-	  .enter().append("g")
-        .attr("class", "bar")
-	    .attr("transform", function(d, i) {
-		    return "translate(" + x(i) + ",0)";
-	    });
-
-	bar.append("rect")
-	    .attr("y", function(d) { return y(d); })
-	    .attr("height", function(d) { return (1 - margin) * shape.y - y(d); })
-	    .attr("width", x.bandwidth());
+        bar.append("rect")
+            .attr("y", function(d) { return y(d); })
+            .attr("height", function(d) { return (1 - self.margin) * self.shape.y - y(d); })
+            .attr("width", x.bandwidth());
+    }
 }
 
 painter.scatterPlot = function(sel) {
