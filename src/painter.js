@@ -43,6 +43,11 @@ class ActualPainting extends Painting {
 
 class NotReallyAPainting extends Painting {
     
+    constructor(sel) {
+        super(sel);
+        this.router = new router.SimpleRouter();
+    }
+
     mesh() {
         var mesh = d3.mesh();
         mesh.x().domain([0, this.shape.x]);
@@ -63,9 +68,19 @@ painter.Root = class Root extends NotReallyAPainting {
 
     paint() {
         var self = this;
-        var routerInstance = new router.simpleRouter();
-        var dest = routerInstance.route(this.data);
-        new dest(self.sel).paint();
+
+        var match = self.router.route(self.data);
+        var painting = new match.painting(self.sel);
+        //TODO: read raw data -> label (array/object/...) -> [process] -> create children paintings (sel, raw, label, processed)
+        painting.paint();
+    }
+
+}
+
+painter.Noop = class Noop extends NotReallyAPainting {
+
+    paint() {
+        console.log("Unsupported data type");
     }
 
 }

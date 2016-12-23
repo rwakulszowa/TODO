@@ -4,27 +4,25 @@ import painter from "./painter"
 
 var router = {};
 
-router.simpleRouter = class {
+router.SimpleRouter = class {
 
     constructor() {
         this.patterns = [
-            [analyzer.isCallTree, painter.CallTree],
-            [analyzer.isObject, painter.ObjectTree],
-            [analyzer.isNumericArray, painter.BarChart],
-            [analyzer.isXYZArray, painter.ScatterPlot],
-            [analyzer.isObjectArray, painter.ObjectArray]
+            { test: analyzer.isCallTree, painting: painter.CallTree },
+            { test: analyzer.isObject, painting: painter.ObjectTree },
+            { test: analyzer.isNumericArray, painting: painter.BarChart },
+            { test: analyzer.isXYZArray, painting: painter.ScatterPlot },
+            { test: analyzer.isObjectArray, painting: painter.ObjectArray }
         ]
     }
 
     route(data) {
-        for (var pair of this.patterns) {
-            var test = pair[0],
-                dest = pair[1];
-            if (test(data)) {
-                return dest;
+        for (var pat of this.patterns) {
+            if (pat.test(data)) {
+                return pat;
             }
         }
-        return d => { console.log("Unsupported data type: " + data); };
+        return { test: () => true, painting: painter.Noop };
     }
 
 };
