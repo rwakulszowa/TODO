@@ -41,6 +41,7 @@ function mergeSort(data) {
     }
 
     if (data.length <= 1) {
+        ans.children = [];
         ans.output = data.slice();
     } else {
         var half = data.splice(

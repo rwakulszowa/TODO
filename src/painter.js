@@ -150,40 +150,28 @@ painter.ScatterPlot = class ScatterPlot extends ActualPainting {
 
 
 painter.CallTree = class CallTree extends NotReallyAPainting {
-    
+
     paint() {
 
-        function dig(i, j, node) {
-
-            var yOffset = 0;
-            mesh.pick(i, j + yOffset, node.input);
-            yOffset += 1;
-
-            for (var c in node.children) {
-                var child = node.children[c];
-                var dug = dig(i + 1, j + yOffset, child);
-                yOffset += dug;
-            }
-
-            mesh.pick(i, j + yOffset, node.output);
-            yOffset += 1;
-
-            return yOffset;
+        function dig(node) {
+            var dug = Array.isArray(node.children) ? node.children.map(dig) : [];
+            var flattened = [].concat.apply([], dug);
+            flattened.forEach(d => d.splice(0, 0, null));
+            return Array.concat([[node.input]], flattened, [[node.output]]);
         }
 
-       var self = this;
+        var self = this;
 
-       var mesh = self.mesh();
+        var mesh = self.mesh();
+        mesh.data(dig(self.data));
 
-       dig(0, 0, self.data);
-
-       self.sel.selectAll("g")
-           .data(mesh.flat().filter(c => c.d() != null))
-           .enter().append("g")
-               .attr("transform", function(d) {
-                   return "translate(" + d.x().a + "," + d.y().a + ")"; })
-               .each(function() {
-                   d3.select(this).call(self.goOn); });
+        self.sel.selectAll("g")
+            .data(mesh.flat().filter(c => c.d() != null))
+            .enter().append("g")
+            .attr("transform", function(d) {
+                return "translate(" + d.x().a + "," + d.y().a + ")"; })
+            .each(function() {
+                d3.select(this).call(self.goOn); });
     }
 }
 
@@ -198,31 +186,26 @@ painter.ObjectTree = class ObjectTree extends NotReallyAPainting {
                 typeof o === "object";
         }
 
-        function dig(i, j, obj) {
+        function moveMatrix(mat) {
+            mat.forEach(col => col.splice(0, 0, null));
+            return mat;
+        }
 
-            var keys = Object.keys(obj).sort(),
-            yOffset = 0;
+        function dig(obj) {
+            var vals = Object.keys(obj).sort().map(k => obj[k]);
 
-            for (var key of keys) {
-                var val = obj[key];
+            var dug = vals.map(function(v) {
+                return isObject(v) ? moveMatrix(dig(v)) : [[v]];
+            });
 
-                if (isObject(val)) {
-                    var dug = dig(i + 1, j + yOffset, val);
-                    yOffset += dug;
-                } else {
-                    mesh.pick(i, j + yOffset, val);
-                    yOffset += 1;
-                }
-            }
-
-            return yOffset;
+            var flattened = [].concat.apply([], dug);
+            return flattened;
         }
 
         var self = this;
 
         var mesh = self.mesh();
-
-        dig(0, 0, self.data);
+        mesh.data(dig(self.data));
 
         self.sel.selectAll("g")
             .data(mesh.flat().filter(c => c.d() != null))
@@ -243,11 +226,7 @@ painter.ObjectArray = class ObjectArray extends NotReallyAPainting {
         var self = this;
 
         var mesh = this.mesh();
-
-        for (var i in self.data) {
-            var obj = self.data[i];
-            mesh.pick(0, i, obj);
-        }
+        mesh.data([self.data]);
 
         self.sel.selectAll("g")
             .data(mesh.flat().filter(c => c.d() != null))
