@@ -1,5 +1,6 @@
 import analyzer from "./analyzer"
 import painter from "./painter"
+import processor from "./processor"
 
 
 var router = {};
@@ -8,11 +9,11 @@ router.SimpleRouter = class {
 
     constructor() {
         this.patterns = [
-            { test: analyzer.isCallTree, painting: painter.CallTree },
-            { test: analyzer.isObject, painting: painter.ObjectTree },
+            { test: analyzer.isCallTree, processor: processor.digCallTree, painting: painter.PlotMesh },
+            { test: analyzer.isObject, processor: processor.digObjectTree, painting: painter.PlotMesh },
             { test: analyzer.isNumericArray, painting: painter.BarChart },
             { test: analyzer.isXYZArray, painting: painter.ScatterPlot },
-            { test: analyzer.isObjectArray, painting: painter.ObjectArray }
+            { test: analyzer.isObjectArray, processor: processor.wrapArray, painting: painter.PlotMesh }
         ]
     }
 

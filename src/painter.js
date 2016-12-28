@@ -5,11 +5,11 @@ var painter = { };
 
 class Painting {
 
-    constructor(sel) {
+    constructor(sel, data) {  //TODO: pass stuff explicitly; get rid of datum and cell dependency
         this.sel = sel;
         this.cell = sel.datum();
         this.shape = this.cell.shape();
-        this.data = this.cell.d();
+        this.data = data;
     }
 
     paint() {
@@ -20,8 +20,8 @@ class Painting {
 
 class ActualPainting extends Painting {
 
-    constructor(sel) {
-        super(sel);
+    constructor(sel, data) {
+        super(sel, data);
         this.margin = 0.1;
     }
     
@@ -43,8 +43,8 @@ class ActualPainting extends Painting {
 
 class NotReallyAPainting extends Painting {
     
-    constructor(sel) {
-        super(sel);
+    constructor(sel, data) {
+        super(sel, data);
         this.router = new router.SimpleRouter();
     }
 
@@ -57,8 +57,8 @@ class NotReallyAPainting extends Painting {
         return mesh;
     }
 
-    goOn(sel) {
-        new painter.Root(sel).paint();
+    goOn(sel, cell) {
+        new painter.Root(sel, cell.d()).paint();
     }
 
 };
@@ -70,8 +70,8 @@ painter.Root = class Root extends NotReallyAPainting {
         var self = this;
 
         var match = self.router.route(self.data);
-        var painting = new match.painting(self.sel);
-        //TODO: read raw data -> label (array/object/...) -> [process] -> create children paintings (sel, raw, label, processed)
+        var data = match.processor ? match.processor(self.data) : self.data;
+        var painting = new match.painting(self.sel, data);
         painting.paint();
     }
 
@@ -86,7 +86,6 @@ painter.Noop = class Noop extends NotReallyAPainting {
 }
 
 
-//TODO: pass data as argument, preprocess by caller
 painter.BarChart = class BarChart extends ActualPainting {
 
     paint() {
@@ -148,96 +147,23 @@ painter.ScatterPlot = class ScatterPlot extends ActualPainting {
 
 }
 
-
-painter.CallTree = class CallTree extends NotReallyAPainting {
-
-    paint() {
-
-        function dig(node) {
-            var dug = Array.isArray(node.children) ? node.children.map(dig) : [];
-            var flattened = [].concat.apply([], dug);
-            flattened.forEach(d => d.splice(0, 0, null));
-            return Array.concat([[node.input]], flattened, [[node.output]]);
-        }
-
-        var self = this;
-
-        var mesh = self.mesh();
-        mesh.data(dig(self.data));
-
-        self.sel.selectAll("g")
-            .data(mesh.flat().filter(c => c.d() != null))
-            .enter().append("g")
-            .attr("transform", function(d) {
-                return "translate(" + d.x().a + "," + d.y().a + ")"; })
-            .each(function() {
-                d3.select(this).call(self.goOn); });
-    }
-}
-
-
-painter.ObjectTree = class ObjectTree extends NotReallyAPainting {
-    
-    paint() {
-
-        function isObject(o) {
-            return o !== null &&
-                !Array.isArray(o) &&
-                typeof o === "object";
-        }
-
-        function moveMatrix(mat) {
-            mat.forEach(col => col.splice(0, 0, null));
-            return mat;
-        }
-
-        function dig(obj) {
-            var vals = Object.keys(obj).sort().map(k => obj[k]);
-
-            var dug = vals.map(function(v) {
-                return isObject(v) ? moveMatrix(dig(v)) : [[v]];
-            });
-
-            var flattened = [].concat.apply([], dug);
-            return flattened;
-        }
-
-        var self = this;
-
-        var mesh = self.mesh();
-        mesh.data(dig(self.data));
-
-        self.sel.selectAll("g")
-            .data(mesh.flat().filter(c => c.d() != null))
-            .enter().append("g")
-            .attr("transform", function(d) {
-                return "translate(" + d.x().a + "," + d.y().a + ")"; })
-            .each(function() {
-                d3.select(this).call(self.goOn); });
-    }
-
-}
-
-
-painter.ObjectArray = class ObjectArray extends NotReallyAPainting {
+painter.PlotMesh = class PlotMesh extends NotReallyAPainting {
 
     paint() {
-
         var self = this;
 
         var mesh = this.mesh();
-        mesh.data([self.data]);
+        mesh.data(self.data);
 
         self.sel.selectAll("g")
             .data(mesh.flat().filter(c => c.d() != null))
             .enter().append("g")
             .attr("transform", function(d) {
                 return "translate(" + d.x().a + "," + d.y().a + ")"; })
-            .each(function() {
-                d3.select(this).call(self.goOn); });
+            .each(function(d) {
+                d3.select(this).call(self.goOn, d); });
     }
 
 }
-
 
 export default painter;

@@ -60,16 +60,18 @@ function mergeSort(data) {
 
 }
 
+var data = mergeSort([1,5,2,4,8,6,17,9]);
+
 var m = d3.mesh();
 m.x().domain([0, size.x]);
 m.y().domain([0, size.y]);
-m.data([[ mergeSort([1,5,2,4,8,6,17,9]) ]]);
+m.data([[ data ]]);
 
 var plot = container.selectAll("g")
     .data(m.flat())
     .enter().append("g");
 
-new splendid.painter.Root(plot).paint();
+new splendid.painter.Root(plot, data).paint();
 
 </script>
 </head>
