@@ -5,14 +5,11 @@ var painter = { };
 
 class Painting {
 
-    constructor(sel, data) {  //TODO: pass stuff explicitly; get rid of datum and cell dependency
-        this.sel = sel;
-        this.cell = sel.datum();
-        this.shape = this.cell.shape();
+    constructor(data) {
         this.data = data;
     }
 
-    paint() {
+    paint(sel, shape) {
         // abstract method of sorts
     }
 
@@ -20,45 +17,44 @@ class Painting {
 
 class ActualPainting extends Painting {
 
-    constructor(sel, data) {
-        super(sel, data);
-        this.margin = 0.1;
+    constructor(data) {
+        super(data);
     }
     
-    chart() {
-        return this.sel.append("g")
+    chart(sel, shape, margin) {
+        return sel.append("g")
             .attr("class", "chart")
-            .attr("transform", "translate(" + this.margin * this.shape.x + "," + this.margin * this.shape.y + ")");
+            .attr("transform", "translate(" + margin * shape.x + "," + margin * shape.y + ")");
     }
 
-    xRange() {
-        return [this.margin * this.shape.x, (1 - this.margin) * this.shape.x];
+    xRange(shape, margin) {
+        return [margin * shape.x, (1 - margin) * shape.x];
     }
 
-    yRange() {
-        return [(1 - this.margin) * this.shape.y, this.margin * this.shape.y];
+    yRange(shape, margin) {
+        return [(1 - margin) * shape.y, margin * shape.y];
     }
 
 };
 
 class NotReallyAPainting extends Painting {
     
-    constructor(sel, data) {
-        super(sel, data);
+    constructor(data) {
+        super(data);
         this.router = new router.SimpleRouter();
     }
 
-    mesh() {
+    mesh(shape) {
         var mesh = d3.mesh();
-        mesh.x().domain([0, this.shape.x]);
-        mesh.y().domain([0, this.shape.y]);
+        mesh.x().domain([0, shape.x]);
+        mesh.y().domain([0, shape.y]);
         mesh.data([[]]);
 
         return mesh;
     }
 
-    goOn(sel, cell) {
-        new painter.Root(sel, cell.d()).paint();
+    goOn(sel, data, shape) {
+        new painter.Root(data).paint(sel, shape);
     }
 
 };
@@ -66,20 +62,21 @@ class NotReallyAPainting extends Painting {
 
 painter.Root = class Root extends NotReallyAPainting {
 
-    paint() {
+    paint(sel, shape) {
         var self = this;
 
         var match = self.router.route(self.data);
         var data = match.processor ? match.processor(self.data) : self.data;
-        var painting = new match.painting(self.sel, data);
-        painting.paint();
+        var painting = new match.painting(data);
+
+        painting.paint(sel, shape);
     }
 
 }
 
 painter.Noop = class Noop extends NotReallyAPainting {
 
-    paint() {
+    paint(sel, shape) {
         console.log("Unsupported data type");
     }
 
@@ -88,19 +85,20 @@ painter.Noop = class Noop extends NotReallyAPainting {
 
 painter.BarChart = class BarChart extends ActualPainting {
 
-    paint() {
+    paint(sel, shape) {
         var self = this;  // d3 reserves the 'this' keyword (kinda)
+        var margin = 0.1;
 
     	var x = d3.scaleBand()
-            .range(self.xRange())
+            .range(self.xRange(shape, margin))
             .padding(0.1)
             .domain(self.data.map(function(d, i) { return i; }));
 
         var y = d3.scaleLinear()
-            .range(self.yRange())
+            .range(self.yRange(shape, margin))
             .domain([0, d3.max(self.data)]);
 
-        var bar = self.chart().selectAll("g")
+        var bar = self.chart(sel, shape, margin).selectAll("g")
             .data(self.data)
             .enter().append("g")
                 .attr("class", "bar")
@@ -110,7 +108,7 @@ painter.BarChart = class BarChart extends ActualPainting {
 
         bar.append("rect")
             .attr("y", function(d) { return y(d); })
-            .attr("height", function(d) { return (1 - self.margin) * self.shape.y - y(d); })
+            .attr("height", function(d) { return (1 - margin) * shape.y - y(d); })
             .attr("width", x.bandwidth());
     }
 }
@@ -118,16 +116,17 @@ painter.BarChart = class BarChart extends ActualPainting {
 
 painter.ScatterPlot = class ScatterPlot extends ActualPainting {
 
-    paint() {
+    paint(sel, shape) {
         var self = this;
-        var radius = Math.min(self.shape.x, self.shape.y) / 25;
+        var margin = 0.1;
+        var radius = Math.min(shape.x, shape.y) / 25;
 
-        var baseXRange = self.xRange();
+        var baseXRange = self.xRange(shape, margin);
         var x = d3.scaleLinear()
             .range([baseXRange[0] + radius, baseXRange[1] - radius])
             .domain(d3.extent(self.data.map(d => d.x)));
 
-        var baseYRange = self.yRange();
+        var baseYRange = self.yRange(shape, margin);
         var y = d3.scaleLinear()
             .range([baseYRange[0] - radius, baseYRange[1] + radius])
             .domain(d3.extent(self.data.map(d => d.y)));
@@ -136,7 +135,7 @@ painter.ScatterPlot = class ScatterPlot extends ActualPainting {
             .range([0.1 * radius, radius])
             .domain(d3.extent(self.data.map(d => d.z)));
 
-        var circle = self.chart().selectAll("circle")
+        var circle = self.chart(sel, shape, margin).selectAll("circle")
             .data(self.data)
             .enter().append("circle")
                 .attr("class", "dot")
@@ -149,19 +148,19 @@ painter.ScatterPlot = class ScatterPlot extends ActualPainting {
 
 painter.PlotMesh = class PlotMesh extends NotReallyAPainting {
 
-    paint() {
+    paint(sel, shape) {
         var self = this;
 
-        var mesh = this.mesh();
+        var mesh = this.mesh(shape);
         mesh.data(self.data);
 
-        self.sel.selectAll("g")
+        sel.selectAll("g")
             .data(mesh.flat().filter(c => c.d() != null))
             .enter().append("g")
             .attr("transform", function(d) {
                 return "translate(" + d.x().a + "," + d.y().a + ")"; })
             .each(function(d) {
-                d3.select(this).call(self.goOn, d); });
+                d3.select(this).call(self.goOn, d.d(), d.shape()); });
     }
 
 }
