@@ -41,7 +41,6 @@ class NotReallyAPainting extends Painting {
     
     constructor(data) {
         super(data);
-        this.router = new router.SimpleRouter();
     }
 
     mesh(shape) {
@@ -53,26 +52,16 @@ class NotReallyAPainting extends Painting {
         return mesh;
     }
 
-    goOn(sel, data, shape) {
-        new painter.Root(data).paint(sel, shape);
+    router() {
+        return new router.SimpleRouter();
+    }
+
+    goOn(sel, self, data, shape) {
+        self.router().proceed(data, sel, shape);
     }
 
 };
 
-
-painter.Root = class Root extends NotReallyAPainting {
-
-    paint(sel, shape) {
-        var self = this;
-
-        var match = self.router.route(self.data);
-        var data = match.processor ? match.processor(self.data) : self.data;
-        var painting = new match.painting(data);
-
-        painting.paint(sel, shape);
-    }
-
-}
 
 painter.Noop = class Noop extends NotReallyAPainting {
 
@@ -160,7 +149,7 @@ painter.PlotMesh = class PlotMesh extends NotReallyAPainting {
             .attr("transform", function(d) {
                 return "translate(" + d.x().a + "," + d.y().a + ")"; })
             .each(function(d) {
-                d3.select(this).call(self.goOn, d.d(), d.shape()); });
+                d3.select(this).call(self.goOn, self, d.d(), d.shape()); });
     }
 
 }

@@ -26,6 +26,13 @@ router.SimpleRouter = class {
         return { test: () => true, painting: painter.Noop };
     }
 
+    proceed(data, sel, shape) {
+        var match = this.route(data);
+        var processed = match.processor ? match.processor(data) : data;
+        var painting = new match.painting(processed);
+        painting.paint(sel, shape);
+    }
+
 };
 
 export default router;
