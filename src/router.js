@@ -26,10 +26,11 @@ router.SimpleRouter = class {
         return { test: () => true, painting: painter.Noop };
     }
 
-    proceed(data, sel, shape) {
+    proceed(data, sel, shape, extras) {
         var match = this.route(data);
-        var processed = match.processor ? match.processor(data) : data;
-        var painting = new match.painting(processed);
+        match.processor = match.processor ? match.processor : processor.noop;
+        var processed = match.processor(data, extras);
+        var painting = new match.painting(processed.data, processed.extras);
         painting.paint(sel, shape);
     }
 

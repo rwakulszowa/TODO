@@ -5,8 +5,9 @@ var painter = { };
 
 class Painting {
 
-    constructor(data) {
+    constructor(data, extras) {
         this.data = data;
+        this.extras = extras;
     }
 
     paint(sel, shape) {
@@ -17,8 +18,8 @@ class Painting {
 
 class ActualPainting extends Painting {
 
-    constructor(data) {
-        super(data);
+    constructor(data, extras) {
+        super(data, extras);
     }
     
     chart(sel, shape, margin) {
@@ -39,8 +40,8 @@ class ActualPainting extends Painting {
 
 class NotReallyAPainting extends Painting {
     
-    constructor(data) {
-        super(data);
+    constructor(data, extras) {
+        super(data, extras);
     }
 
     mesh(shape) {
@@ -57,7 +58,7 @@ class NotReallyAPainting extends Painting {
     }
 
     goOn(sel, self, data, shape) {
-        self.router().proceed(data, sel, shape);
+        self.router().proceed(data, sel, shape, self.extras);
     }
 
 };
@@ -74,8 +75,12 @@ painter.Noop = class Noop extends NotReallyAPainting {
 
 painter.BarChart = class BarChart extends ActualPainting {
 
+    ySpan() {
+        return this.extras.valSpan || [0, d3.max(this.data)];
+    }
+
     paint(sel, shape) {
-        var self = this;  // d3 reserves the 'this' keyword (kinda)
+        var self = this;
         var margin = 0.1;
 
     	var x = d3.scaleBand()
@@ -85,7 +90,7 @@ painter.BarChart = class BarChart extends ActualPainting {
 
         var y = d3.scaleLinear()
             .range(self.yRange(shape, margin))
-            .domain([0, d3.max(self.data)]);
+            .domain(self.ySpan());
 
         var bar = self.chart(sel, shape, margin).selectAll("g")
             .data(self.data)

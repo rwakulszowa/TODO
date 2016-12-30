@@ -1,6 +1,13 @@
+import analyzer from "./analyzer"
+
+
 var processor= { };
 
-processor.digCallTree = function(data) {
+processor.noop = function(data, extras) {
+    return { data, extras };
+}
+
+processor.digCallTree = function(data, extras) {
 
     function dig(node) {
         var dug = Array.isArray(node.children) ? node.children.map(dig) : [];
@@ -9,10 +16,29 @@ processor.digCallTree = function(data) {
         return Array.concat([[node.input]], flattened, [[node.output]]);
     }
 
-    return dig(data);
+    function valSpan(data) {
+        var min = 0,
+            max = 0;
+
+        for (var row of data) {
+            for(var d of row.filter(analyzer.isNumericArray)) {
+                var dMin = Math.min(d),
+                    dMax = Math.max(d);
+                min = dMin < min ? dMin : min;
+                max = dMax > max ? dMax : max;
+            }
+        }
+
+        return [min, max];
+    }
+
+    var data = dig(data),
+        extras = { valSpan: valSpan(data) };
+
+    return { data, extras };
 }
 
-processor.digObjectTree = function(obj) {
+processor.digObjectTree = function(data, extras) {
 
     function isObject(o) {
         return o !== null &&
@@ -36,12 +62,16 @@ processor.digObjectTree = function(obj) {
         return flattened;
     }
 
-    return dig(obj);
+    var data = dig(data);
+
+    return { data, extras };
 
 }
 
-processor.wrapArray = function(arr) {
-    return [arr];
+processor.wrapArray = function(data, extras) {
+    var data = [data];
+
+    return { data, extras };
 }
 
 export default processor;
