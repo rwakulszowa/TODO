@@ -13,7 +13,8 @@ analyzer.isObject = function(o) {
 }
 
 analyzer.isCallTree = function(o) {
-    return analyzer.hasKeys(o, ["input", "output", "children"]);
+    return analyzer.isObject(o) &&
+        analyzer.hasKeys(o, ["input", "output", "children"]);
 }
 
 analyzer.isNumericArray = function(data) {

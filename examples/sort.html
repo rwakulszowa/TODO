@@ -13,20 +13,13 @@
 <div id="container"></div>
 <script>
 
-var size = { x: 480, y: 320 };
-
-var container = d3.select("body")
-    	  .append("svg")
-	    .attr("width", size.x)
-	    .attr("height", size.y);
-
-
 function mergeSort(data) {
-    var ans = {};
-    ans.input = data.slice();  // deep copy
 
     function merge(a, b) {
+        a = a.slice();  // deep copy
+        b = b.slice();
         acc = [];
+
         while(true) {
             if (a.length == 0) {
                 Array.prototype.push.apply(acc, b);
@@ -40,9 +33,13 @@ function mergeSort(data) {
         }
     }
 
+    var ans = {};
+    ans.input = data;
+    data = data.slice();  // deep copy
+
     if (data.length <= 1) {
         ans.children = [];
-        ans.output = data.slice();
+        ans.output = data;
     } else {
         var half = data.splice(
             Math.floor(data.length / 2)); // the other half stays in 'data'
@@ -60,13 +57,21 @@ function mergeSort(data) {
 
 }
 
+var size = { x: 480, y: 320 };
+
+var container = d3.select("body")
+	  .append("svg")
+	    .attr("width", size.x)
+	    .attr("height", size.y);
+
 var data = mergeSort([1,5,2,4,8,6,17,9]);
 
 var plot = container.selectAll("g")
     .data([data])
     .enter().append("g");
 
-new splendid.router.SimpleRouter().proceed(data, plot, size);
+var router = new splendid.router.SimpleRouter();
+router.proceed(data, plot, size, {});
 
 </script>
 </head>
