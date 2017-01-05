@@ -57,6 +57,48 @@ function mergeSort(data) {
 
 }
 
+isCallTree = function(o) {
+    return splendid.analyzer.isObject(o) &&
+        splendid.analyzer.hasKeys(o, ["input", "output", "children"]) &&
+        Array.isArray(o.children);
+}
+
+digCallTree = function(data, extras) {
+
+    function dig(node) {
+        var dug = Array.isArray(node.children) ? node.children.map(dig) : [];
+        var flattened = [].concat.apply([], dug);
+        flattened.forEach(d => d.splice(0, 0, null));
+        return Array.concat([[node.input]], flattened, [[node.output]]);
+    }
+
+    function valSpan(data) {
+        var min = 0,
+            max = 0;
+
+        for (var row of data) {
+            for(var d of row.filter(splendid.analyzer.isNumericArray)) {
+                var dMin = Math.min(d),
+                    dMax = Math.max(d);
+                min = dMin < min ? dMin : min;
+                max = dMax > max ? dMax : max;
+            }
+        }
+
+        return [min, max];
+    }
+
+    var data = dig(data),
+        extras = { valSpan: valSpan(data) };
+
+    return { data, extras };
+}
+
+var router = new splendid.router.SimpleRouter()
+    .extend([
+        { test: isCallTree, processor: digCallTree, painting: splendid.painter.PlotMesh }
+    ]);
+
 var size = { x: 480, y: 320 };
 
 var container = d3.select("body")
@@ -70,7 +112,6 @@ var plot = container.selectAll("g")
     .data([data])
     .enter().append("g");
 
-var router = new splendid.router.SimpleRouter();
 router.proceed(data, plot, size, {});
 
 </script>

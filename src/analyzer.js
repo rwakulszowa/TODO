@@ -12,11 +12,6 @@ analyzer.isObject = function(o) {
         typeof o === "object";
 }
 
-analyzer.isCallTree = function(o) {
-    return analyzer.isObject(o) &&
-        analyzer.hasKeys(o, ["input", "output", "children"]);
-}
-
 analyzer.isNumericArray = function(data) {
     return Array.isArray(data) &&
         data.every(d => Number.isFinite(d));
@@ -33,7 +28,6 @@ analyzer.isXYZArray = function(data) {
     } else {
         return false;
     }
-
 }
 
 export default analyzer;
