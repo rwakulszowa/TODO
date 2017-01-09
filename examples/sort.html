@@ -108,11 +108,7 @@ var container = d3.select("body")
 
 var data = mergeSort([1,5,2,4,8,6,17,9]);
 
-var plot = container.selectAll("g")
-    .data([data])
-    .enter().append("g");
-
-router.proceed(data, plot, size, {});
+splendid.draw(data, container, size, { router });
 
 </script>
 </head>
