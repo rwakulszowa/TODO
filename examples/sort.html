@@ -96,7 +96,7 @@ digCallTree = function(data, extras) {
 
 var router = new splendid.router.SimpleRouter()
     .extend([
-        { test: isCallTree, processor: digCallTree, painting: splendid.painter.PlotMesh }
+        { label: "CallTree", test: isCallTree, processor: digCallTree, painting: splendid.painter.PlotMesh }
     ]);
 
 var size = { x: 480, y: 320 };

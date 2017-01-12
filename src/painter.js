@@ -5,9 +5,10 @@ var painter = { };
 
 class Painting {
 
-    constructor(data, extras) {
+    constructor(data, extras, label) {
         this.data = data;
         this.extras = extras;
+        this.label = label;
     }
 
     paint(sel, shape) {
@@ -18,8 +19,8 @@ class Painting {
 
 class ActualPainting extends Painting {
 
-    constructor(data, extras) {
-        super(data, extras);
+    constructor(data, extras, label) {
+        super(data, extras, label);
     }
     
     chart(sel, shape, margin) {
@@ -40,8 +41,8 @@ class ActualPainting extends Painting {
 
 class NotReallyAPainting extends Painting {
     
-    constructor(data, extras) {
-        super(data, extras);
+    constructor(data, extras, label) {
+        super(data, extras, label);
     }
 
     mesh(shape) {

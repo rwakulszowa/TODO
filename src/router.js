@@ -9,10 +9,10 @@ router.SimpleRouter = class {
 
     constructor() {
         this.patterns = [
-            { test: analyzer.isObject, processor: processor.digObjectTree, painting: painter.PlotMesh },
-            { test: analyzer.isNumericArray, painting: painter.BarChart },
-            { test: analyzer.isXYZArray, painting: painter.ScatterPlot },
-            { test: analyzer.isObjectArray, processor: processor.wrapArray, painting: painter.PlotMesh }
+            { label: "ObjectTree", test: analyzer.isObject, processor: processor.digObjectTree, painting: painter.PlotMesh },
+            { label: "NumericArray", test: analyzer.isNumericArray, painting: painter.BarChart },
+            { label: "XYSArray", test: analyzer.isXYZArray, painting: painter.ScatterPlot },
+            { label: "ObjectArray", test: analyzer.isObjectArray, processor: processor.wrapArray, painting: painter.PlotMesh }
         ]
     }
 
@@ -29,7 +29,7 @@ router.SimpleRouter = class {
         var match = this.route(data);
         match.processor = match.processor ? match.processor : processor.noop;
         var processed = match.processor(data, extras);
-        var painting = new match.painting(processed.data, processed.extras);
+        var painting = new match.painting(processed.data, processed.extras, match.label);
         painting.paint(sel, shape);
     }
 
