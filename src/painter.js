@@ -11,12 +11,22 @@ class Painting {
         this.label = label;
     }
 
+    bindings() {
+        return [];
+    }
+
     paint(sel, shape) {
         // abstract method of sorts
     }
 
     prepare() {
         return this;
+    }
+
+    getExtra(param) {
+        var found = this.extras.find(
+            e => e.matches(this.label, param));
+        return found ? found.value : null;
     }
 
 };
@@ -49,6 +59,10 @@ class NotReallyAPainting extends Painting {
         super(data, extras, label);
     }
 
+    bindings() {
+        return ["router"];
+    }
+
     mesh(shape) {
         var mesh = d3.mesh();
         mesh.x().domain([0, shape.x]);
@@ -59,7 +73,7 @@ class NotReallyAPainting extends Painting {
     }
 
     router() {
-        return new router.SimpleRouter();
+        return this.getExtra("router") || new router.SimpleRouter();
     }
 
 };
@@ -75,8 +89,12 @@ painter.Noop = class Noop extends NotReallyAPainting {
 
 painter.BarChart = class BarChart extends ActualPainting {
 
+    bindings() {
+        return super.bindings().concat(["ySpan"]);
+    }
+
     ySpan() {
-        return this.extras.valSpan || [0, d3.max(this.data)];
+        return this.getExtra("ySpan") || [0, d3.max(this.data)];
     }
 
     paint(sel, shape) {

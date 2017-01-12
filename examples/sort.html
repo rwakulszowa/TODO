@@ -88,13 +88,12 @@ digCallTree = function(data, extras) {
         return [min, max];
     }
 
-    var data = dig(data),
-        extras = { valSpan: valSpan(data) };
+    var data = dig(data);
 
     return { data, extras };
 }
 
-var router = new splendid.router.SimpleRouter()
+var routerInstance = new splendid.router.SimpleRouter()
     .extend([
         { label: "CallTree", test: isCallTree, processor: digCallTree, painting: splendid.painter.PlotMesh }
     ]);
@@ -108,8 +107,10 @@ var container = d3.select("body")
 
 var data = mergeSort([1,5,2,4,8,6,17,9]);
 
-var rootPainting = splendid.draw(container, size, data, { router });
+var valSpan = new splendid.extra([0, 25], ["NumericArray.ySpan"]);
+var router = new splendid.extra(routerInstance, ["*.router"]);
 
+var rootPainting = splendid.draw(container, size, data, [ router, valSpan ]);
 
 </script>
 </head>
