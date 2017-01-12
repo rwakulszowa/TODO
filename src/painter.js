@@ -15,6 +15,10 @@ class Painting {
         // abstract method of sorts
     }
 
+    prepare() {
+        return this;
+    }
+
 };
 
 class ActualPainting extends Painting {
@@ -22,7 +26,7 @@ class ActualPainting extends Painting {
     constructor(data, extras, label) {
         super(data, extras, label);
     }
-    
+
     chart(sel, shape, margin) {
         return sel.append("g")
             .attr("class", "chart")
@@ -58,17 +62,12 @@ class NotReallyAPainting extends Painting {
         return new router.SimpleRouter();
     }
 
-    goOn(sel, self, data, shape) {
-        self.router().proceed(data, sel, shape, self.extras);
-    }
-
 };
 
 
 painter.Noop = class Noop extends NotReallyAPainting {
 
     paint(sel, shape) {
-        console.log("Unsupported data type");
     }
 
 }
@@ -147,7 +146,7 @@ painter.PlotMesh = class PlotMesh extends NotReallyAPainting {
         var self = this;
 
         var mesh = this.mesh(shape);
-        mesh.data(self.data);
+        mesh.data(self._children);
 
         sel.selectAll("g")
             .data(mesh.flat().filter(c => c.d() != null))
@@ -155,7 +154,20 @@ painter.PlotMesh = class PlotMesh extends NotReallyAPainting {
             .attr("transform", function(d) {
                 return "translate(" + d.x().a + "," + d.y().a + ")"; })
             .each(function(d) {
-                d3.select(this).call(self.goOn, self, d.d(), d.shape()); });
+                var painting = d.d();
+                var sel = d3.select(this);
+                painting.paint(sel, d.shape());
+            });
+    }
+
+    prepare() {
+        var router = this.router();
+        var newData = this.data.map(
+            row => row.map(
+                el => router.proceed(el, this.extras)));
+        this._children = newData;
+
+        return this;
     }
 
 }

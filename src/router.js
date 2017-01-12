@@ -11,7 +11,7 @@ router.SimpleRouter = class {
         this.patterns = [
             { label: "ObjectTree", test: analyzer.isObject, processor: processor.digObjectTree, painting: painter.PlotMesh },
             { label: "NumericArray", test: analyzer.isNumericArray, painting: painter.BarChart },
-            { label: "XYSArray", test: analyzer.isXYZArray, painting: painter.ScatterPlot },
+            { label: "XYZArray", test: analyzer.isXYZArray, painting: painter.ScatterPlot },
             { label: "ObjectArray", test: analyzer.isObjectArray, processor: processor.wrapArray, painting: painter.PlotMesh }
         ]
     }
@@ -22,15 +22,15 @@ router.SimpleRouter = class {
                 return pat;
             }
         }
-        return { test: () => true, painting: painter.Noop };
+        return { label: "Ignored", test: () => true, painting: painter.Noop };
     }
 
-    proceed(data, sel, shape, extras) {
+    proceed(data, extras) {
         var match = this.route(data);
         match.processor = match.processor ? match.processor : processor.noop;
         var processed = match.processor(data, extras);
         var painting = new match.painting(processed.data, processed.extras, match.label);
-        painting.paint(sel, shape);
+        return painting.prepare();
     }
 
     extend(patterns) {

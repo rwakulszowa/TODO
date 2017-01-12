@@ -108,7 +108,8 @@ var container = d3.select("body")
 
 var data = mergeSort([1,5,2,4,8,6,17,9]);
 
-splendid.draw(data, container, size, { router });
+var rootPainting = splendid.draw(container, size, data, { router });
+
 
 </script>
 </head>

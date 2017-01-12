@@ -1,8 +1,11 @@
 import router from "./src/router"
 
-function draw(sel, data, size, ctx) {
+function draw(sel, size, data, ctx) {
     var r = ctx.router || new router.SimpleRouter();
-    r.proceed(sel, data, size, ctx);
+    var p = r.proceed(data, ctx);
+
+    p.paint(sel, size);
+    return p;
 }
 
 export {draw};
