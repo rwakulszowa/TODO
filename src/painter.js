@@ -158,6 +158,57 @@ painter.ScatterPlot = class ScatterPlot extends ActualPainting {
 
 }
 
+painter.TreePlot = class TreePlot extends ActualPainting {
+
+    paint(sel, shape) {
+        var self = this;
+
+        const radius = Math.min(shape.x, shape.y) / 25;
+
+        const plot = sel.append("g")
+            .attr("transform", "translate(0," + radius + ")");
+
+        const tree = d3.tree()
+            .size([shape.x, shape.y - 2 * radius]);
+
+        var root = self.data;
+        tree(root);
+
+        const r = d3.scaleLinear()
+            .range([0.1 * radius, radius])
+            .domain(d3.extent(root.leaves().map(d => d.value)));
+
+        var link = plot.selectAll(".link")
+            .data(root.descendants().slice(1))
+          .enter().append("path")
+            .attr("class", "link")
+            .attr("d", function(d) {
+                return "M" + d.x + "," + d.y
+                    + "C" + (d.x + d.parent.x) / 2 + "," + d.y
+                    + " " + (d.x + d.parent.x) / 2 + "," + d.parent.y
+                    + " " + d.parent.x + "," + d.parent.y;
+            });
+
+        var node = plot.selectAll(".node")
+            .data(root.descendants())
+          .enter().append("g")
+            .attr("class", "node")
+            .attr("transform", d => "translate(" + d.x + "," + d.y + ")");
+
+        node.append("circle")
+            .attr("r", d => r(d.value));
+
+        node.append("text")
+            .attr("dx", -radius)
+            .attr("dy", radius / 2)
+            .style("text-anchor", "end")
+            .text(d => d.data.value);
+
+        return self;
+    }
+
+}
+
 painter.PlotMesh = class PlotMesh extends NotReallyAPainting {
 
     paint(sel, shape) {

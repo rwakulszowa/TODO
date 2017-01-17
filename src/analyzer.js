@@ -3,7 +3,7 @@ var analyzer = { };
 analyzer.hasKeys = function(o, keys) {
     var keys = keys.sort();
     var oKeys = Object.keys(o);
-    return oKeys.every(k => keys.indexOf(k) != -1);
+    return keys.every(k => oKeys.indexOf(k) != -1);
 }
 
 analyzer.isObject = function(o) {
@@ -28,6 +28,11 @@ analyzer.isXYZArray = function(data) {
     } else {
         return false;
     }
+}
+
+analyzer.isNodeTree = function(data) {
+    return analyzer.isObject(data) &&
+        analyzer.hasKeys(data, ["value"]);
 }
 
 export default analyzer;

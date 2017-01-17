@@ -37,4 +37,10 @@ processor.wrapArray = function(data, extras) {
     return { data, extras };
 }
 
+processor.hierarchize = function(data, extras) {
+    var data = d3.hierarchy(data);
+
+    return { data, extras };
+}
+
 export default processor;

@@ -1,0 +1,61 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="../build/splendid.js"></script>
+<script src="https://rawgit.com/rwakulszowa/d3-mesh/v0.3.1/examples/d3-mesh.js"></script>
+<style>
+.link {
+  fill: none;
+  stroke: #555;
+}
+</style>
+<body>
+</body>
+<script>
+var data = {
+  "value": 9,
+  "children": [
+    {
+      "value": 0
+    },
+    {
+      "value": 4,
+      "children": [
+        {
+          "value": 6
+        },
+        {
+          "value": 5
+        }
+      ]
+    },
+    {
+      "value": 16,
+      "children": [
+        {
+          "value": 25
+        },
+        {
+          "value": 5
+        }
+      ]
+    }
+  ]
+};
+
+const size = { x: 500, y: 400 };
+
+var routerInstance = new splendid.router.SimpleRouter();
+
+var extras = [
+    new splendid.extra(routerInstance, ["*.router"])];
+
+var container = d3.select("body")
+	  .append("svg")
+	    .attr("width", size.x)
+	    .attr("height", size.y);
+
+var rootPainting = splendid.draw(container, size, data, extras);
+</script>
