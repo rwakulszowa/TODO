@@ -166,7 +166,7 @@ painter.TreePlot = class TreePlot extends ActualPainting {
         const radius = Math.min(shape.x, shape.y) / 25;
 
         const plot = sel.append("g")
-            .attr("transform", "translate(0," + radius + ")");
+            .attr("transform", "translate(0," + 2 * radius + ")");
 
         const tree = d3.tree()
             .size([shape.x, shape.y - 2 * radius]);
@@ -176,7 +176,7 @@ painter.TreePlot = class TreePlot extends ActualPainting {
 
         const r = d3.scaleLinear()
             .range([0.1 * radius, radius])
-            .domain(d3.extent(root.leaves().map(d => d.value)));
+            .domain(d3.extent(root.descendants().map(d => d.value)));
 
         var link = plot.selectAll(".link")
             .data(root.descendants().slice(1))
@@ -184,8 +184,8 @@ painter.TreePlot = class TreePlot extends ActualPainting {
             .attr("class", "link")
             .attr("d", function(d) {
                 return "M" + d.x + "," + d.y
-                    + "C" + (d.x + d.parent.x) / 2 + "," + d.y
-                    + " " + (d.x + d.parent.x) / 2 + "," + d.parent.y
+                    + "C" + d.x + "," + (d.y + d.parent.y) / 2
+                    + " " + d.parent.x + "," + (d.y + d.parent.y) / 2
                     + " " + d.parent.x + "," + d.parent.y;
             });
 
@@ -200,7 +200,6 @@ painter.TreePlot = class TreePlot extends ActualPainting {
 
         node.append("text")
             .attr("dx", -radius)
-            .attr("dy", radius / 2)
             .style("text-anchor", "end")
             .text(d => d.data.value);
 

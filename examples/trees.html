@@ -14,38 +14,183 @@
 <body>
 </body>
 <script>
-var data = {
-  "value": 9,
-  "children": [
-    {
-      "value": 0
-    },
-    {
-      "value": 4,
-      "children": [
-        {
-          "value": 6
-        },
-        {
-          "value": 5
-        }
-      ]
-    },
-    {
-      "value": 16,
-      "children": [
-        {
-          "value": 25
-        },
-        {
-          "value": 5
-        }
-      ]
-    }
-  ]
-};
 
-const size = { x: 500, y: 400 };
+class BinaryMaxHeap {
+    constructor() {
+        this.h = [null];
+    }
+    
+    getParentIndex(i) {
+        return Math.floor(i / 2);
+    }
+
+    getChildrenIndices(i) {
+        return [i * 2, i * 2 + 1];
+    }
+    
+    satisfied(i, j) {  // assume i <= j
+        return this.h[i] >= this.h[j];
+    }
+
+    swap(i, j) {
+        var temp = this.h[i];
+        this.h[i] = this.h[j];
+        this.h[j] = temp;
+    }
+
+    insert(el) {
+        this.h.push(el);
+        var i = this.h.length - 1;  // current position of el
+        while (!this.satisfied(this.getParentIndex(i), i) && i != 1) {
+            this.swap(i, this.getParentIndex(i));
+            i = this.getParentIndex(i);
+        }
+        return this;
+    }
+
+    isEmpty(i) {
+        return i >= this.h.length;
+    }
+
+    dump() {
+       return this._dump(1); 
+    }
+
+    _dump(i) {
+        if (this.isEmpty(i)) {
+            return { value: null };  // empty nodes
+        } else {
+            var childrenInd = this.getChildrenIndices(i);
+            if (childrenInd.every(c => this.isEmpty(c))) {
+                return { value: this.h[i] };
+            } else {
+                return { value: this.h[i], children: childrenInd.map(c => this._dump(c)) };
+            }
+        }
+    }
+}
+
+class RedBlackTree {
+    constructor(x) {
+        this.x = x;
+        this.color = "r";
+        this.l = null;
+        this.r = null;
+    }
+
+    insert(v) {
+        if (v <= this.x) {
+            if (this.l == null) {
+                this.l = new RedBlackTree(v);
+            } else {
+                this.l.insert(v);
+            }
+        } else {
+            if (this.r == null) {
+                this.r = new RedBlackTree(v);
+            } else {
+                this.r.insert(v);
+            }
+        }
+
+        if (this.leansRight()) {
+            this.rotateLeft();
+        }
+        
+        if (this.leansLeft()) {
+            this.rotateRight();
+        }
+
+        if (this.allRed()) {
+            this.flipColors();
+        }
+
+        return this;
+    }
+
+    leansRight() {
+        return this.r != null && this.r.color == "r";
+    }
+
+    leansLeft() {
+        return this.l != null && this.l.color == "r" &&
+            this.l.l != null && this.l.l.color == "r";
+    }
+    
+    allRed() {
+        return this.l != null && this.l.color == "r" &&
+            this.r != null && this.r.color == "r";
+    }
+
+    rotateLeft() {
+        var a = this.x,
+            b = this.r.x,
+            lo = this.l,
+            mid = this.r.l,
+            hi = this.r.r;
+
+        var l = new RedBlackTree(a);
+        l.l = lo;
+        l.r = mid;
+
+        this.x = b;
+        this.l = l;
+        this.r = hi;
+    }
+
+    rotateRight() {
+        var a = this.l.x,
+            b = this.x,
+            lo = this.l.l,
+            mid = this.l.r,
+            hi = this.r;
+
+        var r = new RedBlackTree(b);
+        r.l = mid;
+        r.r = hi;
+        
+        this.x = a;
+        this.l = lo;
+        this.r = r;
+    }
+
+    flipColors() {
+        this.color = "r";
+        this.l.color = "b";
+        this.r.color = "b";
+    }
+    
+    dump() {
+        var empty = { value: null };
+        return { value: this.x + this.color, children: [this.l ? this.l.dump() : empty, this.r ? this.r.dump() : empty] };
+    }
+}
+
+class RedBlackRoot {
+    constructor() {
+        this.node = null; 
+    }
+
+    insert(v) {
+        this.node = this.node ? this.node.insert(v) : new RedBlackTree(v);
+        this.node.color = "b";
+        return this;
+    }
+
+    dump() {
+        return this.node.dump();
+    }
+}
+
+var t = new RedBlackRoot();
+var h = new BinaryMaxHeap();
+
+var heapData = [1, 10, 25, 4, 8].map(x => h.insert(x).dump());
+var rbData = [1, 10, 25, 4, 8, 3, 5, 2].map(x => t.insert(x).dump());
+
+var data = { heapData, rbData };
+
+const size = { x: 900, y: 600 };
 
 var routerInstance = new splendid.router.SimpleRouter();
 
