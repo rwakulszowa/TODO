@@ -10,6 +10,12 @@
   fill: none;
   stroke: #555;
 }
+.node.r {
+  fill: red;
+}
+.node.b {
+  fill: black;
+}
 </style>
 <body>
 </body>
@@ -162,7 +168,7 @@ class RedBlackTree {
     
     dump() {
         var empty = { value: null };
-        return { value: this.x + this.color, children: [this.l ? this.l.dump() : empty, this.r ? this.r.dump() : empty] };
+        return { value: this.x, color: this.color, children: [this.l ? this.l.dump() : empty, this.r ? this.r.dump() : empty] };
     }
 }
 
@@ -192,10 +198,25 @@ var data = { heapData, rbData };
 
 const size = { x: 900, y: 600 };
 
-var routerInstance = new splendid.router.SimpleRouter();
+var routerInstance = new splendid.router.SimpleRouter()
+    .extend([
+        {
+            label: "RedBlackTree",
+            test: x => splendid.analyzer.isNodeTree(x) &&
+                splendid.analyzer.hasKeys(x, ["color"]),
+            processor: splendid.processor.hierarchize,
+            painting: splendid.painter.TreePlot
+        }
+    ]);
+
+function rbtClass(n) {
+    return n == null ? "b" : n.color;    
+};
 
 var extras = [
-    new splendid.extra(routerInstance, ["*.router"])];
+    new splendid.extra(routerInstance, ["*.router"]),
+    new splendid.extra(rbtClass, ["RedBlackTree.class"])
+];
 
 var container = d3.select("body")
 	  .append("svg")

@@ -12,7 +12,7 @@ class Painting {
     }
 
     bindings() {
-        return [];
+        return ["class"];
     }
 
     paint(sel, shape) {
@@ -27,6 +27,10 @@ class Painting {
         var found = this.extras.find(
             e => e.matches(this.label, param));
         return found ? found.value : null;
+    }
+
+    cssClass() {
+        return this.getExtra("class") || ((x) => "");
     }
 
 };
@@ -60,7 +64,7 @@ class NotReallyAPainting extends Painting {
     }
 
     bindings() {
-        return ["router"];
+        return super.bindings().concat(["router"]);
     }
 
     mesh(shape) {
@@ -178,6 +182,8 @@ painter.TreePlot = class TreePlot extends ActualPainting {
             .range([0.1 * radius, radius])
             .domain(d3.extent(root.descendants().map(d => d.value)));
 
+        var cssClass = this.cssClass();
+
         var link = plot.selectAll(".link")
             .data(root.descendants().slice(1))
           .enter().append("path")
@@ -192,7 +198,7 @@ painter.TreePlot = class TreePlot extends ActualPainting {
         var node = plot.selectAll(".node")
             .data(root.descendants())
           .enter().append("g")
-            .attr("class", "node")
+            .attr("class", d => "node " + cssClass(d.data))
             .attr("transform", d => "translate(" + d.x + "," + d.y + ")");
 
         node.append("circle")
