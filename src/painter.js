@@ -164,22 +164,39 @@ painter.ScatterPlot = class ScatterPlot extends ActualPainting {
 
 painter.TreePlot = class TreePlot extends ActualPainting {
 
+    _ring() {
+        var ring = d3.arc()
+            .innerRadius(0)
+            .startAngle(0)
+            .endAngle(2 * Math.PI);
+
+        return (outerRadius) => ring.outerRadius(outerRadius)();
+    }
+
     paint(sel, shape) {
         var self = this;
 
-        const radius = Math.min(shape.x, shape.y) / 25;
+        const maxRadius = Math.min(shape.x, shape.y) / 10;
+        const radius = {
+            lo: maxRadius / 2,
+            hi: maxRadius
+        };
+
+        const fontSize = radius.lo;
+
+        const ring = self._ring();
 
         const plot = sel.append("g")
-            .attr("transform", "translate(0," + 2 * radius + ")");
+            .attr("transform", "translate(0," + radius.hi + ")");
 
         const tree = d3.tree()
-            .size([shape.x, shape.y - 2 * radius]);
+            .size([shape.x, shape.y - 2 * radius.hi]);
 
         var root = self.data;
         tree(root);
 
-        const r = d3.scaleLinear()
-            .range([0.1 * radius, radius])
+        const r = d3.scaleSqrt()
+            .range([radius.lo, radius.hi])
             .domain(d3.extent(root.descendants().map(d => d.value)));
 
         var cssClass = this.cssClass();
@@ -201,12 +218,13 @@ painter.TreePlot = class TreePlot extends ActualPainting {
             .attr("class", d => "node " + cssClass(d.data))
             .attr("transform", d => "translate(" + d.x + "," + d.y + ")");
 
-        node.append("circle")
-            .attr("r", d => r(d.value));
+        node.append("path")
+            .attr("d", d => ring(r(d.value)));
 
         node.append("text")
-            .attr("dx", -radius)
-            .style("text-anchor", "end")
+            .style("dominant-baseline", "central")
+            .style("text-anchor", "middle")
+            .style("font-size", fontSize + "px")
             .text(d => d.data.value);
 
         return self;
