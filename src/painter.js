@@ -162,6 +162,51 @@ painter.ScatterPlot = class ScatterPlot extends ActualPainting {
 
 }
 
+painter.ForceGraph = class ForceGraph extends ActualPainting {
+
+    paint(sel, shape) {
+        var self = this;
+
+        const simulation = d3.forceSimulation()
+            .force("link", d3.forceLink())
+            .force("charge", d3.forceManyBody().distanceMax(Math.min(shape.x, shape.y) / Math.sqrt(self.data.nodes.length)))
+            .force("center", d3.forceCenter(shape.x / 2, shape.y / 2));
+
+        var link = sel.selectAll(".link")
+            .data(self.data.links)
+          .enter().append("line")
+            .attr("class", "link");
+
+        var node = sel.selectAll(".node")
+            .data(self.data.nodes)
+          .enter().append("circle")  //TODO: add a circle / circleFactory method
+            .attr("class", "node")
+            .attr("r", 5);  //TODO: add a method to get the smaller dimension
+
+        var ticked = function() {
+            link
+              .attr("x1", function(d) { return d.source.x; })
+              .attr("y1", function(d) { return d.source.y; })
+              .attr("x2", function(d) { return d.target.x; })
+              .attr("y2", function(d) { return d.target.y; });
+
+            node
+              .attr("cx", function(d) { return d.x; })
+              .attr("cy", function(d) { return d.y; });
+        }
+
+        simulation
+            .nodes(self.data.nodes)
+            .on("tick", ticked);
+
+        simulation.force("link")
+            .links(self.data.links);
+        
+        return self;
+    }
+
+}
+
 painter.TreePlot = class TreePlot extends ActualPainting {
 
     _ring() {

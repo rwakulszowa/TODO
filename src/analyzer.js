@@ -35,4 +35,10 @@ analyzer.isNodeTree = function(data) {
         analyzer.hasKeys(data, ["value"]);
 }
 
+analyzer.isNodesEdges = function(data) {
+    return analyzer.isObject(data) &&
+        analyzer.hasKeys(data, ["nodes", "links"]) &&
+        [data.nodes, data.links].every(d => Array.isArray(d));
+}
+
 export default analyzer;

@@ -9,6 +9,7 @@ router.SimpleRouter = class {
 
     constructor() {
         this.patterns = [
+            { label: "Graph", test: analyzer.isNodesEdges, painting: painter.ForceGraph },
             { label: "NodeTree", test: analyzer.isNodeTree, processor: processor.hierarchize, painting: painter.TreePlot },
             { label: "ObjectTree", test: analyzer.isObject, processor: processor.digObjectTree, painting: painter.PlotMesh },
             { label: "NumericArray", test: analyzer.isNumericArray, painting: painter.BarChart },

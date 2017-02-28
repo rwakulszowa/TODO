@@ -15,10 +15,18 @@ processor.digObjectTree = function(data, extras) {
     }
 
     function dig(obj) {
-        var vals = Object.keys(obj).sort().map(k => obj[k]);
+        var keys = Object.keys(obj),
+            vals = keys.sort().map(k => obj[k]);
+
+        var test = function(obj) {
+            // Only dig objects of the same signature TODO: don't dig at all (?)
+            return analyzer.isObject(obj) &&
+                Object.keys(obj).length == keys.length &&
+                analyzer.hasKeys(obj, keys);
+        };
 
         var dug = vals.map(function(v) {
-            return analyzer.isObject(v) ? moveMatrix(dig(v)) : [[v]];
+            return test(v) ? moveMatrix(dig(v)) : [[v]];
         });
 
         var flattened = [].concat.apply([], dug);

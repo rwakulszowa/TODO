@@ -191,13 +191,31 @@ class RedBlackRoot {
     }
 }
 
+function makeRandomGraph(nodeCount, edgeCount) {
+    function randInt(limit) {
+        return Math.floor(Math.random() * limit);
+    }
+
+    var nodes = [...Array(nodeCount).keys()].map(d => ( { id: d } ));
+    var links = [];
+    for (var i = 0; i < edgeCount; ++i) {
+        var source = randInt(nodeCount);
+        var target = randInt(nodeCount);
+        if (source != target) {
+            links.push({ source, target });
+        }
+    }
+    return { nodes, links };
+}
+
 var t = new RedBlackRoot();
 var h = new BinaryMaxHeap();
 
 var heapData = [1, 10, 25, 4, 8].map(x => h.insert(x).dump());
 var rbData = [1, 10, 25, 4, 8, 3, 5, 2].map(x => t.insert(x).dump());
+var graphData = makeRandomGraph(20, 40);
 
-var data = { heapData, rbData };
+var data = { rbData, graphData, heapData };
 
 const size = { x: 900, y: 600 };
 
