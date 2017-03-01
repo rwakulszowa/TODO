@@ -19,17 +19,13 @@ class Painting {
         // abstract method of sorts
     }
 
-    prepare() {
-        return this;
-    }
-
     getExtra(param) {
         var found = this.extras.find(
             e => e.matches(this.label, param));
         return found ? found.value : null;
     }
 
-    cssClass() {
+    cssClass() {  //TODO: actually use this in Paintings
         return this.getExtra("class") || ((x) => "");
     }
 
@@ -39,6 +35,10 @@ class ActualPainting extends Painting {
 
     constructor(data, extras, label) {
         super(data, extras, label);
+    }
+ 
+    static isLeaf() {
+        return true;
     }
 
     chart(sel, shape, margin) {
@@ -63,8 +63,8 @@ class NotReallyAPainting extends Painting {
         super(data, extras, label);
     }
 
-    bindings() {
-        return super.bindings().concat(["router"]);
+    static isLeaf() {
+        return false;
     }
 
     mesh(shape) {
@@ -76,16 +76,12 @@ class NotReallyAPainting extends Painting {
         return mesh;
     }
 
-    router() {
-        return this.getExtra("router") || new router.SimpleRouter();
-    }
-
 };
 
-
-painter.Noop = class Noop extends NotReallyAPainting {
+painter.Noop = class Noop extends ActualPainting {
 
     paint(sel, shape) {
+        // Do nothing
     }
 
 }
@@ -283,28 +279,18 @@ painter.PlotMesh = class PlotMesh extends NotReallyAPainting {
         var self = this;
 
         var mesh = this.mesh(shape);
-        mesh.data(self._children);
+        mesh.data(self.data);
 
         sel.selectAll("g")
             .data(mesh.flat().filter(c => c.d() != null))
-            .enter().append("g")
-            .attr("transform", function(d) {
-                return "translate(" + d.x().a + "," + d.y().a + ")"; })
+          .enter().append("g")
+            .attr("transform", d => "translate(" + d.x().a + "," + d.y().a + ")")
             .each(function(d) {
-                var painting = d.d();
-                var sel = d3.select(this);
-                painting.paint(sel, d.shape());
+                const subTree = d.d();
+                subTree.paint(
+                    d3.select(this),
+                    d.shape());
             });
-    }
-
-    prepare() {
-        var router = this.router();
-        var newData = this.data.map(
-            row => row.map(
-                el => router.proceed(el, this.extras)));
-        this._children = newData;
-
-        return this;
     }
 
 }

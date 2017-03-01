@@ -235,7 +235,6 @@ function rbtClass(n) {
 };
 
 var extras = [
-    new splendid.extra(routerInstance, ["*.router"]),
     new splendid.extra(rbtClass, ["RedBlackTree.class"])
 ];
 
@@ -244,5 +243,6 @@ var container = d3.select("body")
 	    .attr("width", size.x)
 	    .attr("height", size.y);
 
-var rootPainting = splendid.draw(container, size, data, extras);
+const tree = routerInstance.buildTree(data, extras);
+tree.paint(container, size);
 </script>
