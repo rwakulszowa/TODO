@@ -19,6 +19,10 @@ class Painting {
         // abstract method of sorts
     }
 
+    minDimension(shape) {
+        return Math.min(shape.x, shape.y);
+    }
+
     getExtra(param) {
         var found = this.extras.find(
             e => e.matches(this.label, param));
@@ -27,6 +31,17 @@ class Painting {
 
     cssClass() {  //TODO: actually use this in Paintings
         return this.getExtra("class") || ((x) => "");
+    }
+
+    path(a, b) {
+        return "M" + a.x + "," + a.y
+            + "C" + a.x + "," + (a.y + b.y) / 2
+            + " " + b.x + "," + (a.y + b.y) / 2
+            + " " + b.x + "," + b.y;
+    }
+
+    translate(x, y) {
+        return "translate(" + x + "," + y + ")";
     }
 
 };
@@ -44,7 +59,7 @@ class ActualPainting extends Painting {
     chart(sel, shape, margin) {
         return sel.append("g")
             .attr("class", "chart")
-            .attr("transform", "translate(" + margin * shape.x + "," + margin * shape.y + ")");
+            .attr("transform", this.translate(margin * shape.x, margin * shape.y));
     }
 
     xRange(shape, margin) {
@@ -86,7 +101,6 @@ painter.Noop = class Noop extends ActualPainting {
 
 }
 
-
 painter.BarChart = class BarChart extends ActualPainting {
 
     bindings() {
@@ -104,7 +118,7 @@ painter.BarChart = class BarChart extends ActualPainting {
     	var x = d3.scaleBand()
             .range(self.xRange(shape, margin))
             .padding(0.1)
-            .domain(self.data.map(function(d, i) { return i; }));
+            .domain(self.data.map((_, i) => i));
 
         var y = d3.scaleLinear()
             .range(self.yRange(shape, margin))
@@ -114,13 +128,11 @@ painter.BarChart = class BarChart extends ActualPainting {
             .data(self.data)
             .enter().append("g")
                 .attr("class", "bar")
-                .attr("transform", function(d, i) {
-                    return "translate(" + x(i) + ",0)";
-                });
+                .attr("transform", (_, i) => self.translate(x(i), 0) );
 
         bar.append("rect")
-            .attr("y", function(d) { return y(d); })
-            .attr("height", function(d) { return (1 - margin) * shape.y - y(d); })
+            .attr("y", d => y(d))
+            .attr("height", d => (1 - margin) * shape.y - y(d))
             .attr("width", x.bandwidth());
     }
 }
@@ -131,7 +143,7 @@ painter.ScatterPlot = class ScatterPlot extends ActualPainting {
     paint(sel, shape) {
         var self = this;
         var margin = 0.1;
-        var radius = Math.min(shape.x, shape.y) / 25;
+        var radius = self.minDimension(shape) / 25;
 
         var baseXRange = self.xRange(shape, margin);
         var x = d3.scaleLinear()
@@ -165,7 +177,8 @@ painter.ForceGraph = class ForceGraph extends ActualPainting {
 
         const simulation = d3.forceSimulation()
             .force("link", d3.forceLink())
-            .force("charge", d3.forceManyBody().distanceMax(Math.min(shape.x, shape.y) / Math.sqrt(self.data.nodes.length)))
+            .force("charge", d3.forceManyBody().distanceMax(
+                self.minDimension(shape) / Math.sqrt(self.data.nodes.length)))
             .force("center", d3.forceCenter(shape.x / 2, shape.y / 2));
 
         var link = sel.selectAll(".link")
@@ -175,20 +188,19 @@ painter.ForceGraph = class ForceGraph extends ActualPainting {
 
         var node = sel.selectAll(".node")
             .data(self.data.nodes)
-          .enter().append("circle")  //TODO: add a circle / circleFactory method
+          .enter().append("circle")
             .attr("class", "node")
-            .attr("r", 5);  //TODO: add a method to get the smaller dimension
+            .attr("r", self.minDimension(shape) / 100);
 
         var ticked = function() {
             link
-              .attr("x1", function(d) { return d.source.x; })
-              .attr("y1", function(d) { return d.source.y; })
-              .attr("x2", function(d) { return d.target.x; })
-              .attr("y2", function(d) { return d.target.y; });
+              .attr("x1", d => d.source.x)
+              .attr("y1", d => d.source.y)
+              .attr("x2", d => d.target.x)
+              .attr("y2", d => d.target.y);
 
             node
-              .attr("cx", function(d) { return d.x; })
-              .attr("cy", function(d) { return d.y; });
+              .attr("transform", d => self.translate(d.x, d.y));
         }
 
         simulation
@@ -217,7 +229,7 @@ painter.TreePlot = class TreePlot extends ActualPainting {
     paint(sel, shape) {
         var self = this;
 
-        const maxRadius = Math.min(shape.x, shape.y) / 10;
+        const maxRadius = self.minDimension(shape) / 10;
         const radius = {
             lo: maxRadius / 2,
             hi: maxRadius
@@ -228,7 +240,7 @@ painter.TreePlot = class TreePlot extends ActualPainting {
         const ring = self._ring();
 
         const plot = sel.append("g")
-            .attr("transform", "translate(0," + radius.hi + ")");
+            .attr("transform", self.translate(0, radius.hi));
 
         const tree = d3.tree()
             .size([shape.x, shape.y - 2 * radius.hi]);
@@ -246,18 +258,13 @@ painter.TreePlot = class TreePlot extends ActualPainting {
             .data(root.descendants().slice(1))
           .enter().append("path")
             .attr("class", "link")
-            .attr("d", function(d) {
-                return "M" + d.x + "," + d.y
-                    + "C" + d.x + "," + (d.y + d.parent.y) / 2
-                    + " " + d.parent.x + "," + (d.y + d.parent.y) / 2
-                    + " " + d.parent.x + "," + d.parent.y;
-            });
+            .attr("d", d => self.path(d, d.parent));
 
         var node = plot.selectAll(".node")
             .data(root.descendants())
           .enter().append("g")
             .attr("class", d => "node " + cssClass(d.data))
-            .attr("transform", d => "translate(" + d.x + "," + d.y + ")");
+            .attr("transform", d => self.translate(d.x, d.y));
 
         node.append("path")
             .attr("d", d => ring(r(d.value)));
@@ -284,7 +291,7 @@ painter.PlotMesh = class PlotMesh extends NotReallyAPainting {
         sel.selectAll("g")
             .data(mesh.flat().filter(c => c.d() != null))
           .enter().append("g")
-            .attr("transform", d => "translate(" + d.x().a + "," + d.y().a + ")")
+            .attr("transform", d => self.translate(d.x().a, d.y().a))
             .each(function(d) {
                 const subTree = d.d();
                 subTree.paint(
