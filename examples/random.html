@@ -1,0 +1,79 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="../build/splendid.js"></script>
+<script src="https://rawgit.com/rwakulszowa/d3-mesh/v0.3.1/examples/d3-mesh.js"></script>
+<style>
+.link {
+  fill: none;
+  stroke: #555;
+}
+text {
+  fill: white;  
+}
+</style>
+<body>
+</body>
+<script>
+
+// Some fancy functions generating JSON values.
+function randInt(limit, offset) {
+    offset = offset || 0;
+    return Math.floor(Math.random() * (limit - offset) + offset);
+}
+
+function randomGraph() {
+    const nodeCount = randInt(25, 4);
+    const edgeCount = randInt(25);
+    const nodes = [...Array(nodeCount).keys()].map(d => ( { id: d } ));
+    var links = [];
+    for (var i = 0; i < edgeCount; ++i) {
+        const source = randInt(nodeCount);
+        const target = randInt(nodeCount);
+        if (source != target) {
+            links.push({ source, target });
+        }
+    }
+    return { nodes, links };
+}
+
+function randomTree(depth) {
+    depth = depth || 0;
+    var leaf = depth != 0 && (depth == 4 || randInt(2) == 0);
+
+    if (leaf) {
+        return {
+            value: randInt(25)
+        };
+    } else {
+        return {
+            value: randInt(25),
+            children: Array(randInt(4, 1)).fill(0).map(_ => randomTree(depth + 1))
+        };
+    }
+}
+
+function randomNumArray() {
+    return Array(randInt(25, 1)).fill(25).map(randInt);
+}
+
+
+// Just make a valid JSON object...
+var data = [
+    {
+        a: randomGraph(),
+        b: randomGraph(),
+        c: randomGraph()
+    },
+    randomTree(),
+    {
+        a: randomNumArray(),
+        b: randomTree()
+    }
+];
+
+// ... and call a single method.
+splendid.draw(data);
+</script>
