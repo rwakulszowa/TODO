@@ -45,6 +45,18 @@ router.SimpleRouter = class {
         ]
     }
 
+    isForced(obj) {
+        return obj && Object.keys(obj).indexOf("SplendidLabel") != -1;
+    }
+
+    matchByLabel(data) {
+        return this.patterns.find(x => x.label == data.SplendidLabel);
+    }
+
+    unwrapForcedData(data) {
+        return data.data;
+    }
+
     extend(patterns) {
         this.patterns = patterns.concat(this.patterns);
         return this;
@@ -64,11 +76,18 @@ router.SimpleRouter = class {
     }
 
     route(data, extras) {
-        const match = this.match(data);
+        var match;
+
+        if (this.isForced(data)) {
+            match = this.matchByLabel(data);
+            data = this.unwrapForcedData(data);
+        } else {
+            match = this.match(data);
+        }
+
         extras = extras || [];
         const painting = match.painting;
         const process = match.processor || processor.noop;
-
         const processed = process(data, extras);
 
         data = processed.data;
