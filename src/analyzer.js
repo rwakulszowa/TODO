@@ -22,6 +22,14 @@ analyzer.isObjectArray = function(data) {
         data.every(analyzer.isObject);
 }
 
+analyzer.isXYArray = function(data) {
+    if (Array.isArray(data) && data.length > 0) {
+        return data.every(d => analyzer.hasKeys(d, ["x", "y"]));
+    } else {
+        return false;
+    }
+}
+
 analyzer.isXYZArray = function(data) {
     if (Array.isArray(data) && data.length > 0) {
         return data.every(d => analyzer.hasKeys(d, ["x", "y", "z"]));

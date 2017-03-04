@@ -101,6 +101,7 @@ painter.Noop = class Noop extends ActualPainting {
 
 }
 
+//TODO: class hierarchy -> common ancestor for TreePlots, NDPlots (Line/Area/Bar/Scatter/...) - ND = N-dimensional(x, y, size, color, shape...)
 painter.BarChart = class BarChart extends ActualPainting {
 
     bindings() {
@@ -137,6 +138,45 @@ painter.BarChart = class BarChart extends ActualPainting {
     }
 }
 
+/*
+ * 2D line graph
+ *
+ * Input format: [ { x, y }, ... ]
+ * Data is expected to be sorted by x.
+ */
+painter.LineGraph = class LineGraph extends ActualPainting {
+
+    bindings() {
+        return super.bindings().concat(["ySpan"]);
+    }
+
+    ySpan() {
+        return this.getExtra("ySpan") || [0, d3.max(this.data.map(d => d.y))];
+    }
+
+    paint(sel, shape) {
+        var self = this;
+        var margin = 0.1;
+
+        var x = d3.scaleLinear()
+            .range(self.xRange(shape, margin))
+            .domain(d3.extent(self.data.map(d => d.x)));
+
+        var y = d3.scaleLinear()
+            .range(self.yRange(shape, margin))
+            .domain(self.ySpan());
+
+        var line = d3.line()
+            .x(d => x(d.x))
+            .y(d => y(d.y));
+
+        var line = sel.append("path")
+            .datum(self.data)
+            .attr("class", "line")
+            .style("fill", "none")
+            .attr("d", line);
+    }
+}
 
 painter.ScatterPlot = class ScatterPlot extends ActualPainting {
 
