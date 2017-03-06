@@ -1,4 +1,5 @@
 import router from "./router"
+import utils from "./utils"
 
 
 var painter = { };
@@ -68,6 +69,26 @@ class ActualPainting extends Painting {
 
     yRange(shape, margin) {
         return [(1 - margin) * shape.y, margin * shape.y];
+    }
+
+    dashRange(scale) {
+        var v = [1, 2, 4].map(x => scale * x);
+        var ans = v.map(
+            x => v.map(
+                y => [x, y]));
+
+        var ans = v.map(x => [x]);
+        for (var i = 0; i < 2; ++i) {
+            var temp = [];
+            for (var a of ans) {
+                for (var el of v) {
+                    temp.push(a.concat([el]));
+                }
+            }
+            ans = temp;
+        }
+        ans.unshift([]);  // continuous line
+        return ans.map(a => a.toString());
     }
 
 };
@@ -141,18 +162,10 @@ painter.BarChart = class BarChart extends ActualPainting {
 /*
  * 2D line graph
  *
- * Input format: [ { x, y }, ... ]
+ * Input format: [ { x, y, z }, ... ]
  * Data is expected to be sorted by x.
  */
 painter.LineGraph = class LineGraph extends ActualPainting {
-
-    bindings() {
-        return super.bindings().concat(["ySpan"]);
-    }
-
-    ySpan() {
-        return this.getExtra("ySpan") || [0, d3.max(this.data.map(d => d.y))];
-    }
 
     paint(sel, shape) {
         var self = this;
@@ -164,18 +177,27 @@ painter.LineGraph = class LineGraph extends ActualPainting {
 
         var y = d3.scaleLinear()
             .range(self.yRange(shape, margin))
-            .domain(self.ySpan());
+            .domain([0, d3.max(self.data.map(d => d.y))]);
+
+        var z = d3.scaleOrdinal()
+            .range(self.dashRange(self.minDimension(shape) / 25))
+            .domain(self.data.map(d => d.z));
 
         var line = d3.line()
             .x(d => x(d.x))
             .y(d => y(d.y));
 
-        var line = sel.append("path")
-            .datum(self.data)
-            .attr("class", "line")
-            .style("fill", "none")
-            .attr("d", line);
+        var groupedData = utils.groupByKeys(self.data, "z");
+
+        var line = sel.selectAll("path")
+            .data(groupedData)
+            .enter().append("path")
+                .attr("class", "line")
+                .style("fill", "none")
+                .attr("stroke-dasharray", d => z(d.z))
+                .attr("d", (d) => line(d.data));
     }
+
 }
 
 painter.ScatterPlot = class ScatterPlot extends ActualPainting {

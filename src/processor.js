@@ -51,4 +51,10 @@ processor.hierarchize = function(data, extras) {
     return { data, extras };
 }
 
+processor.sortByX = function(data, extras) {
+    data = data.sort((a, b) => b.x < a.x ? -1 : b.x > a.x ? 1 : 0);
+
+    return { data, extras };
+}
+
 export default processor;

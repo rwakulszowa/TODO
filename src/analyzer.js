@@ -38,6 +38,14 @@ analyzer.isXYZArray = function(data) {
     }
 }
 
+analyzer.isXYZWArray = function(data) {
+    if (Array.isArray(data) && data.length > 0) {
+        return data.every(d => analyzer.hasKeys(d, ["x", "y", "z", "w"]));
+    } else {
+        return false;
+    }
+}
+
 analyzer.isNodeTree = function(data) {
     return analyzer.isObject(data) &&
         analyzer.hasKeys(data, ["value"]);

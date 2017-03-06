@@ -37,6 +37,12 @@ router.SimpleRouter = class {
                 painting: painter.ScatterPlot
             },
             {
+                label: "XYZWArray",
+                test: analyzer.isXYZWArray,
+                processor: processor.sortByX,
+                painting: painter.LineGraph
+            },
+            {
                 label: "ObjectArray",
                 test: analyzer.isObjectArray,
                 processor: processor.wrapArray,
@@ -102,6 +108,7 @@ router.SimpleRouter = class {
     }
 
     buildTree(data, extras) {
+        //TODO: remake the current extras mechanism, get relevant values based on the tree
         var tree;
         const routed = this.route(data, extras);
 
