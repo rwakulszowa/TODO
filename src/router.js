@@ -12,41 +12,41 @@ router.SimpleRouter = class {
             {
                 label: "Graph",
                 test: analyzer.isNodesEdges,
-                painting: painter.ForceGraph
+                painting: painter.forceGraph()
             },
             {
                 label: "NodeTree",
                 test: analyzer.isNodeTree,
                 processor: processor.hierarchize,
-                painting: painter.TreePlot
+                painting: painter.treePlot()
             },
             {
                 label: "ObjectTree",
                 test: analyzer.isObject,
                 processor: processor.digObjectTree,
-                painting: painter.PlotMesh
+                painting: painter.plotMesh()
             },
             {
                 label: "NumericArray",
                 test: analyzer.isNumericArray,
-                painting: painter.BarChart
+                painting: painter.barChart()
             },
             {
                 label: "XYZArray",
                 test: analyzer.isXYZArray,
-                painting: painter.ScatterPlot
+                painting: painter.scatterPlot()
             },
             {
                 label: "XYZWArray",
                 test: analyzer.isXYZWArray,
                 processor: processor.sortByX,
-                painting: painter.LineGraph
+                painting: painter.lineGraph()
             },
             {
                 label: "AnyArray",
                 test: Array.isArray,
                 processor: processor.wrapArray,
-                painting: painter.PlotMesh
+                painting: painter.plotMesh()
             }
         ]
     }
@@ -77,7 +77,7 @@ router.SimpleRouter = class {
         return {
             label: "Ignored",
             test: () => true,
-            painting: painter.Noop
+            painting: painter.noop()
         };
     }
 
@@ -156,7 +156,6 @@ class Leaf extends Tree {
 
     dump() {
         return {
-            "painting": this.painting.name,
             "label": this.match.label
         };
     }
@@ -182,7 +181,6 @@ class Node extends Tree {
 
     dump() {
         return {
-            "painting": this.painting.name,
             "label": this.match.label,
             "children": this.childrenFlat().map(x => x.dump()),
         };

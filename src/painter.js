@@ -2,7 +2,7 @@ import router from "./router"
 import utils from "./utils"
 
 
-var painter = { };  //TODO: export factory methods rather than classes
+var painter = { };
 
 class Painting {
 
@@ -114,7 +114,7 @@ class NotReallyAPainting extends Painting {
 
 };
 
-painter.Noop = class Noop extends ActualPainting {
+class Noop extends ActualPainting {
 
     paint(sel, shape) {
         // Do nothing
@@ -122,8 +122,10 @@ painter.Noop = class Noop extends ActualPainting {
 
 }
 
-//TODO: class hierarchy -> common ancestor for TreePlots, NDPlots (Line/Area/Bar/Scatter/...) - ND = N-dimensional(x, y, size, color, shape...)
-painter.BarChart = class BarChart extends ActualPainting {
+painter.noop = wrapConstructor(Noop);
+
+
+class BarChart extends ActualPainting {
 
     bindings() {
         return super.bindings().concat(["ySpan"]);
@@ -159,13 +161,15 @@ painter.BarChart = class BarChart extends ActualPainting {
     }
 }
 
+painter.barChart = wrapConstructor(BarChart);
+
 /*
  * 2D line graph
  *
  * Input format: [ { x, y, z, w }, ... ]
  * Data is expected to be sorted by x.
  */
-painter.LineGraph = class LineGraph extends ActualPainting {
+class LineGraph extends ActualPainting {
 
     paint(sel, shape) {
         var self = this;
@@ -205,7 +209,10 @@ painter.LineGraph = class LineGraph extends ActualPainting {
 
 }
 
-painter.ScatterPlot = class ScatterPlot extends ActualPainting {
+painter.lineGraph = wrapConstructor(LineGraph);
+
+
+class ScatterPlot extends ActualPainting {
 
     paint(sel, shape) {
         var self = this;
@@ -237,7 +244,10 @@ painter.ScatterPlot = class ScatterPlot extends ActualPainting {
 
 }
 
-painter.ForceGraph = class ForceGraph extends ActualPainting {
+painter.scatterPlot = wrapConstructor(ScatterPlot);
+
+
+class ForceGraph extends ActualPainting {
 
     paint(sel, shape) {
         var self = this;
@@ -282,7 +292,10 @@ painter.ForceGraph = class ForceGraph extends ActualPainting {
 
 }
 
-painter.TreePlot = class TreePlot extends ActualPainting {
+painter.forceGraph = wrapConstructor(ForceGraph);
+
+
+class TreePlot extends ActualPainting {
 
     _ring() {
         var ring = d3.arc()
@@ -347,7 +360,10 @@ painter.TreePlot = class TreePlot extends ActualPainting {
 
 }
 
-painter.PlotMesh = class PlotMesh extends NotReallyAPainting {
+painter.treePlot = wrapConstructor(TreePlot);
+
+
+class PlotMesh extends NotReallyAPainting {
 
     paint(sel, shape) {
         var self = this;
@@ -369,5 +385,16 @@ painter.PlotMesh = class PlotMesh extends NotReallyAPainting {
 
 }
 
+painter.plotMesh = wrapConstructor(PlotMesh);
+
 
 export default painter;
+
+
+// Local stuff
+function wrapConstructor(cls) {
+    function inner() {
+        return cls;
+    }
+    return inner;
+}
