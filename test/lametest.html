@@ -11,7 +11,8 @@
   stroke: #555;
 }
 path {
-  stroke: black;
+  stroke-linecap: round;
+  stroke-width: 2px;
 }
 text {
   fill: white;  
@@ -26,6 +27,10 @@ function randInt(limit, offset) {
     offset = offset || 0;
     limit = limit || 25;
     return Math.floor(Math.random() * (limit - offset) + offset);
+}
+
+function randomPick(options) {
+    return options[randInt(options.length)];
 }
 
 function randomGraph() {
@@ -60,12 +65,12 @@ function randomTree(depth) {
 }
 
 function randomNumArray() {
-    return Array(randInt(25, 1)).fill(25).map(randInt);
+    return Array(49).fill(25).map(randInt);
 }
 
 function randomXYZArray(keyRanges) {
     keyRanges = keyRanges || [25, 25, 4];
-    return Array(randInt(25, 1)).fill(25).map(_ => randomXYZObject(keyRanges));
+    return Array(100).fill(25).map(_ => randomXYZObject(keyRanges));
 }
 
 function randomXYZObject(keyRanges) {
@@ -79,6 +84,14 @@ function randomXYZObject(keyRanges) {
     return ans;
 }
 
+function randomSimpleThing() {
+    const options = [randomGraph, randomNumArray, randomTree, randomXYZArray];
+    return randomPick(options)();
+}
+
+function randomAnyArray() {
+    return Array(4).fill(0).map(randomSimpleThing);
+}
 
 function force(data, label) {
     return { data: data, SplendidLabel: label };
@@ -89,7 +102,9 @@ var data = {
     "NumericArray": randomNumArray(),
     "NodeTree": randomTree(),
     "XYZArray": randomXYZArray(),
-    "XYZWArray": randomXYZArray([25, 25, 4, 9]),
+    "XYZWArray": randomXYZArray([25, 25, 4, 4]),
+    "ObjectTree": { a: randomSimpleThing(), b: { c: randomSimpleThing(), e: randomSimpleThing() } },
+    "AnyArray": randomAnyArray()
 };
 
 var forced = Object.keys(data).map(

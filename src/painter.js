@@ -2,7 +2,7 @@ import router from "./router"
 import utils from "./utils"
 
 
-var painter = { };
+var painter = { };  //TODO: export factory methods rather than classes
 
 class Painting {
 
@@ -162,7 +162,7 @@ painter.BarChart = class BarChart extends ActualPainting {
 /*
  * 2D line graph
  *
- * Input format: [ { x, y, z }, ... ]
+ * Input format: [ { x, y, z, w }, ... ]
  * Data is expected to be sorted by x.
  */
 painter.LineGraph = class LineGraph extends ActualPainting {
@@ -183,11 +183,15 @@ painter.LineGraph = class LineGraph extends ActualPainting {
             .range(self.dashRange(self.minDimension(shape) / 25))
             .domain(self.data.map(d => d.z));
 
+        var w = d3.scaleLinear()
+            .range(["#555", "black"])
+            .domain(self.data.map(d => d.w));
+
         var line = d3.line()
             .x(d => x(d.x))
             .y(d => y(d.y));
 
-        var groupedData = utils.groupByKeys(self.data, "z");
+        var groupedData = utils.groupByKeys(self.data, "zw");
 
         var line = sel.selectAll("path")
             .data(groupedData)
@@ -195,6 +199,7 @@ painter.LineGraph = class LineGraph extends ActualPainting {
                 .attr("class", "line")
                 .style("fill", "none")
                 .attr("stroke-dasharray", d => z(d.z))
+                .style("stroke", d => w(d.w))
                 .attr("d", (d) => line(d.data));
     }
 
@@ -363,5 +368,6 @@ painter.PlotMesh = class PlotMesh extends NotReallyAPainting {
     }
 
 }
+
 
 export default painter;

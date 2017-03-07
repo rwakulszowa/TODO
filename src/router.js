@@ -43,8 +43,8 @@ router.SimpleRouter = class {
                 painting: painter.LineGraph
             },
             {
-                label: "ObjectArray",
-                test: analyzer.isObjectArray,
+                label: "AnyArray",
+                test: Array.isArray,
                 processor: processor.wrapArray,
                 painting: painter.PlotMesh
             }

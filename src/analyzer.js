@@ -1,5 +1,6 @@
 var analyzer = { };
 
+//TODO: clean this mess up -> just useful helpers / factories
 analyzer.hasKeys = function(o, keys) {
     var keys = keys.sort();
     var oKeys = Object.keys(o);
@@ -15,11 +16,6 @@ analyzer.isObject = function(o) {
 analyzer.isNumericArray = function(data) {
     return Array.isArray(data) &&
         data.every(d => Number.isFinite(d));
-}
-
-analyzer.isObjectArray = function(data) {
-    return Array.isArray(data) &&
-        data.every(analyzer.isObject);
 }
 
 analyzer.isXYArray = function(data) {
