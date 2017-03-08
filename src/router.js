@@ -9,10 +9,26 @@ var router = {};
 router.SimpleRouter = class {
 
     constructor() {
-        this.patterns = [  //TODO: rename labels to more informative, less duplicated names
+        this.patterns = [
             {
                 label: "Graph",
-                test: test.isNodesEdges,
+                test: test.objectNestedTest(
+                    {
+                        nodes: test.isExactObjArray(["id"]),  //TODO: allow more params (color at least)
+                        links: test.isExactObjArray(["source", "target"])
+                    }
+                ),
+                draw: draw.force()
+            },
+            {
+                label: "SimpleGraph",
+                test: test.objectNestedTest(
+                    {
+                        nodes: test.isNumericArray,
+                        links: test.isArrayOf(x => test.isNumericArray(x) && x.length == 2)
+                    }
+                ),
+                process: process.graphify,
                 draw: draw.force()
             },
             {
@@ -28,9 +44,17 @@ router.SimpleRouter = class {
                 draw: draw.nested()
             },
             {
-                label: "NumericArray",
+                label: "Numbers",
                 test: test.isNumericArray,
                 draw: draw.bar()
+            },
+            {
+                label: "XYArray",
+                test: test.isExactObjArray(["x", "y"]),
+                process: process.chain([
+                    process.fillXYZ(["x", "y", "z", "w"]),
+                    process.sortByX]),
+                draw: draw.line()
             },
             {
                 label: "XYZArray",

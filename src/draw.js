@@ -5,7 +5,7 @@ import utils from "./utils"
 var draw = { };
 
 
-class BaseDrawing {
+class BaseDrawing {  //TODO: add some kinda validation of data
 
     constructor(data, label) {
         this.data = data;
@@ -213,7 +213,7 @@ class Scatter extends ActualDrawing {
             .domain(d3.extent(self.data.map(d => d.y)));
 
         var z = d3.scaleLinear()
-            .range([0.1 * radius, radius])
+            .range([0.25 * radius, radius])
             .domain(d3.extent(self.data.map(d => d.z)));
 
         var circle = self.chart(sel, shape, margin).selectAll("circle")
@@ -313,7 +313,7 @@ class Tree extends ActualDrawing {
 
         const r = d3.scaleSqrt()
             .range([radius.lo, radius.hi])
-            .domain(d3.extent(root.descendants().map(d => d.value)));
+            .domain(d3.extent(root.descendants().map(d => d.data.value)));
 
         var link = plot.selectAll(".link")
             .data(root.descendants().slice(1))
@@ -328,7 +328,7 @@ class Tree extends ActualDrawing {
             .attr("transform", d => self.translate(d.x, d.y));
 
         node.append("path")
-            .attr("d", d => ring(r(d.value)));
+            .attr("d", d => ring(r(d.data.value)));
 
         node.append("text")
             .style("dominant-baseline", "central")

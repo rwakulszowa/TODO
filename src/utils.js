@@ -19,4 +19,19 @@ utils.groupByKeys = function(seq, keys) {
     return [...ans.keys()].map(key => ans.get(key));
 }
 
+utils.renameProperty = function(obj, oldName, newName) {
+    obj[newName] = obj[oldName];
+    delete obj[oldName];
+    return obj;
+}
+
+utils.mapTree = function(tree, fun) {
+    fun(tree);
+    if (tree.children) {
+        tree.children.forEach(
+            t => utils.mapTree(t, fun));
+    }
+    return tree;
+}
+
 export default utils;

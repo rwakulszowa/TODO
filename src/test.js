@@ -1,44 +1,60 @@
 var test = { };
 
-test.hasKeys = function(o, keys) {
-    var oKeys = Object.keys(o);
-    return keys.every(k => oKeys.indexOf(k) != -1);
-}
-
-test.hasExactKeys = function(o, keys) {
-    var oKeys = Object.keys(o);
-    return oKeys.length == keys.length &&
-        keys.every(k => oKeys.indexOf(k) != -1);
-}
-
 test.isObject = function(o) {
     return o !== null &&
         !Array.isArray(o) &&
         typeof o === "object";
 }
 
-test.isNumericArray = function(data) {
-    return Array.isArray(data) &&
-        data.every(d => Number.isFinite(d));
+test.hasKeys = function(o, keys) {
+    if (test.isObject(o)) {
+        var oKeys = Object.keys(o);
+        return keys.every(k => oKeys.indexOf(k) != -1);
+    } else {
+        return false;
+    }
 }
 
-test.isExactObjArray = function(keys) {
-    function foo(data) {
-        return Array.isArray(data) &&
-            data.every(d => test.hasExactKeys(d, keys));
+test.hasExactKeys = function(o, keys) {
+    if (test.isObject(o)) {
+        var oKeys = Object.keys(o);
+        return oKeys.length == keys.length &&
+            keys.every(k => oKeys.indexOf(k) != -1);
+    } else {
+        return false;
     }
-    return foo;
+}
+
+test.isArrayOf = function(subTest) {
+    function inner(data) {
+        return Array.isArray(data) &&
+            data.every(subTest);
+    }
+    return inner;
+}
+
+test.isNumericArray = test.isArrayOf(Number.isFinite);
+
+test.isExactObjArray = function(keys) {
+    return test.isArrayOf(d => test.hasExactKeys(d, keys));
 }
 
 test.isNodeTree = function(data) {
     return test.isObject(data) &&
-        test.hasKeys(data, ["value"]);
+        test.hasKeys(data, ["children"]);
 }
 
-test.isNodesEdges = function(data) {
-    return test.isObject(data) &&
-        test.hasKeys(data, ["nodes", "links"]) &&
-        [data.nodes, data.links].every(d => Array.isArray(d));
+test.objectNestedTest = function(keyTestPairs) {
+    const keys = Object.keys(keyTestPairs);
+    function inner(data) {
+        return test.hasExactKeys(data, keys) &&
+            keys.every(function(key) {
+                var subTest = keyTestPairs[key];
+                var subData = data[key];
+                return subTest(subData);
+            });
+    }
+    return inner;
 }
 
 export default test;

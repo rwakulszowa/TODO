@@ -33,16 +33,16 @@ function randomPick(options) {
     return options[randInt(options.length)];
 }
 
-function randomGraph() {
+function randomGraph(simple) {
     const nodeCount = randInt(25, 4);
     const edgeCount = randInt(25);
-    const nodes = [...Array(nodeCount).keys()].map(d => ( { id: d } ));
+    const nodes = [...Array(nodeCount).keys()].map(d => ( simple ? d : { id: d } ));
     var links = [];
     for (var i = 0; i < edgeCount; ++i) {
         const source = randInt(nodeCount);
         const target = randInt(nodeCount);
         if (source != target) {
-            links.push({ source, target });
+            links.push(simple ? [source, target] : { source, target });
         }
     }
     return { nodes, links };
@@ -99,8 +99,10 @@ function force(data, label) {
 
 var data = {
     "Graph": randomGraph(),
-    "NumericArray": randomNumArray(),
+    "SimpleGraph": randomGraph(true),
+    "Numbers": randomNumArray(),
     "Tree": randomTree(),
+    "XYArray": randomXYZArray([25, 25]),
     "XYZArray": randomXYZArray(),
     "XYZWArray": randomXYZArray([25, 25, 4, 4]),
     "ObjectTree": { a: randomSimpleThing(), b: { c: randomSimpleThing(), e: randomSimpleThing() } },
