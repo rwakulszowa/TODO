@@ -27,6 +27,6 @@
   "homepage": "https://github.com/rwakulszowa/splendid",
   "devDependencies": {
     "rollup": "^0.37.0",
-    "tape": 4
+    "tape": "^4"
   }
 }
