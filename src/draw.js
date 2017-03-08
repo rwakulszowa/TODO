@@ -2,36 +2,22 @@ import router from "./router"
 import utils from "./utils"
 
 
-var painter = { };
+var draw = { };
 
-class Painting {
 
-    constructor(data, extras, label) {
+class BaseDrawing {
+
+    constructor(data, label) {
         this.data = data;
-        this.extras = extras;
         this.label = label;
     }
 
-    bindings() {
-        return ["class"];
-    }
-
-    paint(sel, shape) {
+    draw(sel, shape) {
         // abstract method of sorts
     }
 
     minDimension(shape) {
         return Math.min(shape.x, shape.y);
-    }
-
-    getExtra(param) {
-        var found = this.extras.find(
-            e => e.matches(this.label, param));
-        return found ? found.value : null;
-    }
-
-    cssClass() {  //TODO: actually use this in Paintings
-        return this.getExtra("class") || ((x) => "");
     }
 
     path(a, b) {
@@ -47,10 +33,11 @@ class Painting {
 
 };
 
-class ActualPainting extends Painting {
 
-    constructor(data, extras, label) {
-        super(data, extras, label);
+class ActualDrawing extends BaseDrawing {
+
+    constructor(data, label) {
+        super(data, label);
     }
  
     static isLeaf() {
@@ -93,10 +80,11 @@ class ActualPainting extends Painting {
 
 };
 
-class NotReallyAPainting extends Painting {
+
+class NotReallyADrawing extends BaseDrawing {
     
-    constructor(data, extras, label) {
-        super(data, extras, label);
+    constructor(data, label) {
+        super(data, label);
     }
 
     static isLeaf() {
@@ -114,28 +102,21 @@ class NotReallyAPainting extends Painting {
 
 };
 
-class Noop extends ActualPainting {
 
-    paint(sel, shape) {
+class Empty extends ActualDrawing {
+
+    draw(sel, shape) {
         // Do nothing
     }
 
 }
 
-painter.noop = wrapConstructor(Noop);
+draw.empty = wrapConstructor(Empty);
 
 
-class BarChart extends ActualPainting {
+class Bar extends ActualDrawing {
 
-    bindings() {
-        return super.bindings().concat(["ySpan"]);
-    }
-
-    ySpan() {
-        return this.getExtra("ySpan") || [0, d3.max(this.data)];
-    }
-
-    paint(sel, shape) {
+    draw(sel, shape) {
         var self = this;
         var margin = 0.1;
 
@@ -146,7 +127,7 @@ class BarChart extends ActualPainting {
 
         var y = d3.scaleLinear()
             .range(self.yRange(shape, margin))
-            .domain(self.ySpan());
+            .domain([0, d3.max(self.data)]);
 
         var bar = self.chart(sel, shape, margin).selectAll("g")
             .data(self.data)
@@ -159,9 +140,11 @@ class BarChart extends ActualPainting {
             .attr("height", d => (1 - margin) * shape.y - y(d))
             .attr("width", x.bandwidth());
     }
+
 }
 
-painter.barChart = wrapConstructor(BarChart);
+draw.bar = wrapConstructor(Bar);
+
 
 /*
  * 2D line graph
@@ -169,9 +152,9 @@ painter.barChart = wrapConstructor(BarChart);
  * Input format: [ { x, y, z, w }, ... ]
  * Data is expected to be sorted by x.
  */
-class LineGraph extends ActualPainting {
+class Line extends ActualDrawing {
 
-    paint(sel, shape) {
+    draw(sel, shape) {
         var self = this;
         var margin = 0.1;
 
@@ -209,12 +192,12 @@ class LineGraph extends ActualPainting {
 
 }
 
-painter.lineGraph = wrapConstructor(LineGraph);
+draw.line = wrapConstructor(Line);
 
 
-class ScatterPlot extends ActualPainting {
+class Scatter extends ActualDrawing {
 
-    paint(sel, shape) {
+    draw(sel, shape) {
         var self = this;
         var margin = 0.1;
         var radius = self.minDimension(shape) / 25;
@@ -244,12 +227,12 @@ class ScatterPlot extends ActualPainting {
 
 }
 
-painter.scatterPlot = wrapConstructor(ScatterPlot);
+draw.scatter = wrapConstructor(Scatter);
 
 
-class ForceGraph extends ActualPainting {
+class Force extends ActualDrawing {
 
-    paint(sel, shape) {
+    draw(sel, shape) {
         var self = this;
 
         const simulation = d3.forceSimulation()
@@ -292,10 +275,10 @@ class ForceGraph extends ActualPainting {
 
 }
 
-painter.forceGraph = wrapConstructor(ForceGraph);
+draw.force = wrapConstructor(Force);
 
 
-class TreePlot extends ActualPainting {
+class Tree extends ActualDrawing {
 
     _ring() {
         var ring = d3.arc()
@@ -306,7 +289,7 @@ class TreePlot extends ActualPainting {
         return (outerRadius) => ring.outerRadius(outerRadius)();
     }
 
-    paint(sel, shape) {
+    draw(sel, shape) {
         var self = this;
 
         const maxRadius = self.minDimension(shape) / 10;
@@ -332,8 +315,6 @@ class TreePlot extends ActualPainting {
             .range([radius.lo, radius.hi])
             .domain(d3.extent(root.descendants().map(d => d.value)));
 
-        var cssClass = this.cssClass();
-
         var link = plot.selectAll(".link")
             .data(root.descendants().slice(1))
           .enter().append("path")
@@ -343,7 +324,7 @@ class TreePlot extends ActualPainting {
         var node = plot.selectAll(".node")
             .data(root.descendants())
           .enter().append("g")
-            .attr("class", d => "node " + cssClass(d.data))
+            .attr("class", "node")
             .attr("transform", d => self.translate(d.x, d.y));
 
         node.append("path")
@@ -360,12 +341,12 @@ class TreePlot extends ActualPainting {
 
 }
 
-painter.treePlot = wrapConstructor(TreePlot);
+draw.tree = wrapConstructor(Tree);
 
 
-class PlotMesh extends NotReallyAPainting {
+class Nested extends NotReallyADrawing {
 
-    paint(sel, shape) {
+    draw(sel, shape) {
         var self = this;
 
         var mesh = this.mesh(shape);
@@ -377,7 +358,7 @@ class PlotMesh extends NotReallyAPainting {
             .attr("transform", d => self.translate(d.x().a, d.y().a))
             .each(function(d) {
                 const subTree = d.d();
-                subTree.paint(
+                subTree.draw(
                     d3.select(this),
                     d.shape());
             });
@@ -385,11 +366,9 @@ class PlotMesh extends NotReallyAPainting {
 
 }
 
-painter.plotMesh = wrapConstructor(PlotMesh);
+draw.nested = wrapConstructor(Nested);
 
-
-export default painter;
-
+export default draw;
 
 // Local stuff
 function wrapConstructor(cls) {

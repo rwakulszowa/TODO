@@ -100,7 +100,7 @@ function force(data, label) {
 var data = {
     "Graph": randomGraph(),
     "NumericArray": randomNumArray(),
-    "NodeTree": randomTree(),
+    "Tree": randomTree(),
     "XYZArray": randomXYZArray(),
     "XYZWArray": randomXYZArray([25, 25, 4, 4]),
     "ObjectTree": { a: randomSimpleThing(), b: { c: randomSimpleThing(), e: randomSimpleThing() } },
@@ -109,5 +109,5 @@ var data = {
 
 var forced = Object.keys(data).map(
     key => force(data[key], key));
-splendid.draw(forced);
+splendid.show(forced);
 </script>

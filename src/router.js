@@ -1,6 +1,7 @@
-import analyzer from "./analyzer"
-import painter from "./painter"
-import processor from "./processor"
+import draw from "./draw"
+import process from "./process"
+import test from "./test"
+import tree from "./tree"
 
 
 var router = {};
@@ -8,45 +9,45 @@ var router = {};
 router.SimpleRouter = class {
 
     constructor() {
-        this.patterns = [
+        this.patterns = [  //TODO: rename labels to more informative, less duplicated names
             {
                 label: "Graph",
-                test: analyzer.isNodesEdges,
-                painting: painter.forceGraph()
+                test: test.isNodesEdges,
+                draw: draw.force()
             },
             {
-                label: "NodeTree",
-                test: analyzer.isNodeTree,
-                processor: processor.hierarchize,
-                painting: painter.treePlot()
+                label: "Tree",
+                test: test.isNodeTree,
+                process: process.hierarchize,
+                draw: draw.tree()
             },
             {
                 label: "ObjectTree",
-                test: analyzer.isObject,
-                processor: processor.digObjectTree,
-                painting: painter.plotMesh()
+                test: test.isObject,
+                process: process.digObjectTree,
+                draw: draw.nested()
             },
             {
                 label: "NumericArray",
-                test: analyzer.isNumericArray,
-                painting: painter.barChart()
+                test: test.isNumericArray,
+                draw: draw.bar()
             },
             {
                 label: "XYZArray",
-                test: analyzer.isXYZArray,
-                painting: painter.scatterPlot()
+                test: test.isExactObjArray(["x", "y", "z"]),
+                draw: draw.scatter()
             },
             {
                 label: "XYZWArray",
-                test: analyzer.isXYZWArray,
-                processor: processor.sortByX,
-                painting: painter.lineGraph()
+                test: test.isExactObjArray(["x", "y", "z", "w"]),
+                process: process.sortByX,
+                draw: draw.line()
             },
             {
                 label: "AnyArray",
                 test: Array.isArray,
-                processor: processor.wrapArray,
-                painting: painter.plotMesh()
+                process: process.wrapArray,
+                draw: draw.nested()
             }
         ]
     }
@@ -77,11 +78,11 @@ router.SimpleRouter = class {
         return {
             label: "Ignored",
             test: () => true,
-            painting: painter.noop()
+            draw: draw.empty()
         };
     }
 
-    route(data, extras) {
+    route(data) {
         var match;
 
         if (this.isForced(data)) {
@@ -91,120 +92,37 @@ router.SimpleRouter = class {
             match = this.match(data);
         }
 
-        extras = extras || [];
-        const painting = match.painting;
-        const process = match.processor || processor.noop;
-        const processed = process(data, extras);
-
-        data = processed.data;
-        extras = processed.extras;
+        const draw = match.draw;
+        data = match.process ? match.process(data) : data;
 
         return {
-            painting,
+            draw,
             data,
-            extras,
             match
         }
     }
 
-    buildTree(data, extras) {
-        //TODO: remake the current extras mechanism, get relevant values based on the tree
-        var tree;
-        const routed = this.route(data, extras);
+    buildTree(data) {
+        var t;
+        const routed = this.route(data);
 
-        if (routed.painting.isLeaf()) {
-            tree = new Leaf(
-                routed.painting,
+        if (routed.draw.isLeaf()) {
+            t = new tree.leaf(
+                routed.draw,
                 routed.data,
-                routed.extras,
                 routed.match);
         } else {
             const children = routed.data.map(
                 arr => arr.map(
-                    d => this.buildTree(d, extras)));
-            tree = new Node(
-                routed.painting,
+                    d => this.buildTree(d)));
+            t = new tree.node(
+                routed.draw,
                 children,
-                routed.extras,
                 routed.match);
         }
 
-        return tree;
+        return t;
     }
 };
-
-class Tree {
-    constructor(painting, extras, match) {
-        this.painting = painting;
-        this.extras = extras;
-        this.match = match;
-    };
-
-    dumps() {
-        return JSON.stringify(
-            this.dump(),
-            null,
-            2);
-    }
-};
-
-class Leaf extends Tree {
-    constructor(painting, data, extras, match) {
-        super(painting, extras, match);
-        this.data = data;
-    }
-
-    dump() {
-        return {
-            "label": this.match.label
-        };
-    }
-
-    paint(sel, shape) {
-        const painting = new this.painting(
-            this.data,
-            this.extras,
-            this.match.label
-        );
-        painting.paint(
-            sel,
-            shape
-        );
-    }
-}
-
-class Node extends Tree {
-    constructor(painting, children, extras, match) {
-        super(painting, extras, match);
-        this.children = children;
-    }
-
-    dump() {
-        return {
-            "label": this.match.label,
-            "children": this.childrenFlat().map(x => x.dump()),
-        };
-    }
-
-    childrenFlat() {
-        return this.children.reduce(
-            function(acc, val) {
-                acc.push(...val);
-                return acc;
-            },
-            []);
-    }
-
-    paint(sel, shape) {
-        const painting = new this.painting(
-            this.children,
-            this.extras,
-            this.match.label
-        );
-        painting.paint(
-            sel, shape
-        );
-    }
-}
 
 export default router;

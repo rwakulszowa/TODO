@@ -2,7 +2,7 @@ import router from "./src/router"
 
 
 //TODO: turn this into a d3-like object
-function draw(data, size, container, extras) {
+function show(data, size, container, extras) {
     size = size || { x: 860, y: 640 };
     container = container || d3.select("body")
 	  .append("svg")
@@ -12,14 +12,14 @@ function draw(data, size, container, extras) {
 
     const routerInstance = new router.SimpleRouter();
     const tree = routerInstance.buildTree(data, extras);
-    tree.paint(container, size);
+    tree.draw(container, size);
 }
 
 
-export {draw};
-export {default as analyzer} from "./src/analyzer";
+export {show};
+export {default as draw} from "./src/draw";
 export {default as extra} from "./src/extra";
-export {default as painter} from "./src/painter";
-export {default as processor} from "./src/processor";
+export {default as process} from "./src/process";
 export {default as router} from "./src/router";
+export {default as test} from "./src/test";
 export {default as utils} from "./src/utils";

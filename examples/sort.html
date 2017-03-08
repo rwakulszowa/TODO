@@ -58,12 +58,12 @@ function mergeSort(data) {
 }
 
 isCallTree = function(o) {
-    return splendid.analyzer.isObject(o) &&
-        splendid.analyzer.hasKeys(o, ["input", "output", "children"]) &&
+    return splendid.test.isObject(o) &&
+        splendid.test.hasKeys(o, ["input", "output", "children"]) &&
         Array.isArray(o.children);
 }
 
-digCallTree = function(data, extras) {
+digCallTree = function(data) {
 
     function dig(node) {
         var dug = Array.isArray(node.children) ? node.children.map(dig) : [];
@@ -74,18 +74,14 @@ digCallTree = function(data, extras) {
 
     var data = dig(data);
 
-    return { data, extras };
+    return data;
 }
 
 var routerInstance = new splendid.router.SimpleRouter()
     .extend([
-        { label: "CallTree", test: isCallTree, processor: digCallTree, painting: splendid.painter.plotMesh() }
+        { label: "CallTree", test: isCallTree, process: digCallTree, draw: splendid.draw.nested() }
     ]);
 
-
-var extras = [
-    new splendid.extra([0, 25], ["NumericArray.ySpan"]),
-    new splendid.extra(routerInstance, ["*.router"])];
 
 var size = { x: 480, y: 320 };
 var container = d3.select("body")
@@ -95,8 +91,8 @@ var container = d3.select("body")
 
 var data = mergeSort([1,5,2,4,8,6,17,9]);
 
-const tree = routerInstance.buildTree(data, extras);
-tree.paint(container, size);
+const tree = routerInstance.buildTree(data);
+tree.draw(container, size);
 
 </script>
 </head>

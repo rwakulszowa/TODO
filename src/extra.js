@@ -1,3 +1,5 @@
+//NOTE: not used right now
+//TODO: get extra data from the Tree
 class Extra {
 
     constructor(value, bindings, updateFun) {
