@@ -235,6 +235,10 @@ class Force extends ActualDrawing {
     draw(sel, shape) {
         var self = this;
 
+        const radius = self.minDimension(shape) / 100;
+        const maxStrLength = d3.max(self.data.nodes.map(d => d.id.toString().length));
+        const fontSize = radius / maxStrLength;
+
         const simulation = d3.forceSimulation()
             .force("link", d3.forceLink())
             .force("charge", d3.forceManyBody().distanceMax(
@@ -248,9 +252,17 @@ class Force extends ActualDrawing {
 
         var node = sel.selectAll(".node")
             .data(self.data.nodes)
-          .enter().append("circle")
-            .attr("class", "node")
-            .attr("r", self.minDimension(shape) / 100);
+          .enter().append("g")
+            .attr("class", "node");
+
+        node.append("circle")
+            .attr("r", radius);
+
+        node.append("text")
+            .style("dominant-baseline", "central")
+            .style("text-anchor", "middle")
+            .style("font-size", fontSize + "px")
+            .text(d => d.id.toString());
 
         var ticked = function() {
             link
@@ -280,15 +292,6 @@ draw.force = wrapConstructor(Force);
 
 class Tree extends ActualDrawing {
 
-    _ring() {
-        var ring = d3.arc()
-            .innerRadius(0)
-            .startAngle(0)
-            .endAngle(2 * Math.PI);
-
-        return (outerRadius) => ring.outerRadius(outerRadius)();
-    }
-
     draw(sel, shape) {
         var self = this;
 
@@ -298,10 +301,6 @@ class Tree extends ActualDrawing {
             hi: maxRadius
         };
 
-        const fontSize = radius.lo;
-
-        const ring = self._ring();
-
         const plot = sel.append("g")
             .attr("transform", self.translate(0, radius.hi));
 
@@ -310,6 +309,9 @@ class Tree extends ActualDrawing {
 
         var root = self.data;
         tree(root);
+
+        const maxStrLength = d3.max(root.descendants().map(d => d.data.value.toString().length));
+        const fontSize = radius.lo / maxStrLength;
 
         const r = d3.scaleSqrt()
             .range([radius.lo, radius.hi])
@@ -327,8 +329,8 @@ class Tree extends ActualDrawing {
             .attr("class", "node")
             .attr("transform", d => self.translate(d.x, d.y));
 
-        node.append("path")
-            .attr("d", d => ring(r(d.data.value)));
+        node.append("circle")
+            .attr("r", d => r(d.data.value));
 
         node.append("text")
             .style("dominant-baseline", "central")
