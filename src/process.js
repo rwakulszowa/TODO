@@ -63,7 +63,7 @@ process.digObjectTree = function(data) {
 }
 
 process.graphify = function(data) {
-    const nodes = data.nodes.map(x => ({ id: x }));
+    const nodes = data.nodes.map(x => ({ id: x, group: 0 }));
     const links = data.links.map(x => ({ source: x[0], target: x[1] }));
     return { nodes, links };
 }

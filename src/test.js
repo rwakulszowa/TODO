@@ -35,13 +35,14 @@ test.isArrayOf = function(subTest) {
 
 test.isNumericArray = test.isArrayOf(Number.isFinite);
 
+test.isFlatArray = test.isArrayOf(x => !Array.isArray(x));
+
 test.isExactObjArray = function(keys) {
     return test.isArrayOf(d => test.hasExactKeys(d, keys));
 }
 
 test.isNodeTree = function(data) {
-    return test.isObject(data) &&
-        test.hasKeys(data, ["children"]);
+    return test.hasKeys(data, ["children"]);
 }
 
 test.objectNestedTest = function(keyTestPairs) {

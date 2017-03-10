@@ -14,7 +14,7 @@ router.SimpleRouter = class {
                 label: "Graph",
                 test: test.objectNestedTest(
                     {
-                        nodes: test.isExactObjArray(["id"]),  //TODO: allow more params (color at least)
+                        nodes: d => test.hasKeys(d, ["id"]),
                         links: test.isExactObjArray(["source", "target"])
                     }
                 ),
@@ -24,8 +24,8 @@ router.SimpleRouter = class {
                 label: "SimpleGraph",
                 test: test.objectNestedTest(
                     {
-                        nodes: test.isNumericArray,
-                        links: test.isArrayOf(x => test.isNumericArray(x) && x.length == 2)
+                        nodes: test.isFlatArray,
+                        links: test.isArrayOf(x => Array.isArray(x) && x.length == 2)
                     }
                 ),
                 process: process.graphify,

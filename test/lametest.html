@@ -36,11 +36,13 @@ function randomPick(options) {
 function randomGraph(simple) {
     const nodeCount = randInt(25, 4);
     const edgeCount = randInt(25);
-    const nodes = [...Array(nodeCount).keys()].map(d => ( simple ? d : { id: d } ));
+    const abc = "abcdefghijklmnopqrstuvwxyz";
+    const nodes = [...Array(nodeCount).keys()].map(
+        d => ( simple ? abc[d] : { id: abc[d], group: randInt(4) } ));
     var links = [];
     for (var i = 0; i < edgeCount; ++i) {
-        const source = randInt(nodeCount);
-        const target = randInt(nodeCount);
+        const source = abc[randInt(nodeCount)];
+        const target = abc[randInt(nodeCount)];
         if (source != target) {
             links.push(simple ? [source, target] : { source, target });
         }

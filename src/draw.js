@@ -239,8 +239,10 @@ class Force extends ActualDrawing {
         const maxStrLength = d3.max(self.data.nodes.map(d => d.id.toString().length));
         const fontSize = radius / maxStrLength;
 
+        const color = d3.scaleOrdinal(d3.schemeCategory10);
+
         const simulation = d3.forceSimulation()
-            .force("link", d3.forceLink())
+            .force("link", d3.forceLink().id(d => d.id))
             .force("charge", d3.forceManyBody().distanceMax(
                 self.minDimension(shape) / Math.sqrt(self.data.nodes.length)))
             .force("center", d3.forceCenter(shape.x / 2, shape.y / 2));
@@ -253,7 +255,8 @@ class Force extends ActualDrawing {
         var node = sel.selectAll(".node")
             .data(self.data.nodes)
           .enter().append("g")
-            .attr("class", "node");
+            .attr("class", "node")
+            .attr("fill", d => color(d.group));
 
         node.append("circle")
             .attr("r", radius);
