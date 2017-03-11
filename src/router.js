@@ -14,7 +14,7 @@ router.SimpleRouter = class {
                 label: "Graph",
                 test: test.objectNestedTest(
                     {
-                        nodes: d => test.hasKeys(d, ["id"]),
+                        nodes: test.isArrayOf(x => test.hasKeys(x, ["id"])),
                         links: test.isExactObjArray(["source", "target"])
                     }
                 ),
