@@ -8,7 +8,7 @@
     "test": "test"
   },
   "scripts": {
-    "pretest": "rm -rf build && mkdir build && rollup -f umd -n splendid -o build/splendid.js -- index.js",
+    "pretest": "rm -rf build && mkdir build && rollup -f umd -n splendid -o build/splendid.js -- index.js && cp build/splendid.js examples/",
     "test": "tape 'test/**/*-test.js' && python -m webbrowser ./test/lametest.html"
   },
   "repository": {
