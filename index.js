@@ -18,7 +18,6 @@ function show(data, size, container, extras) {
 
 export {show};
 export {default as draw} from "./src/draw";
-export {default as extra} from "./src/extra";
 export {default as process} from "./src/process";
 export {default as router} from "./src/router";
 export {default as test} from "./src/test";

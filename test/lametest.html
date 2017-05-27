@@ -6,17 +6,6 @@
 <script src="../build/splendid.js"></script>
 <script src="https://rawgit.com/rwakulszowa/d3-mesh/v0.3.1/examples/d3-mesh.js"></script>
 <style>
-.link {
-  fill: none;
-  stroke: #555;
-}
-path {
-  stroke-linecap: round;
-  stroke-width: 2px;
-}
-text {
-  fill: white;  
-}
 </style>
 <body>
 </body>
@@ -29,89 +18,12 @@ function randInt(limit, offset) {
     return Math.floor(Math.random() * (limit - offset) + offset);
 }
 
-function randomPick(options) {
-    return options[randInt(options.length)];
-}
-
-function randomGraph(simple) {
-    const nodeCount = randInt(25, 4);
-    const edgeCount = randInt(25);
-    const abc = "abcdefghijklmnopqrstuvwxyz";
-    const nodes = [...Array(nodeCount).keys()].map(
-        d => ( simple ? abc[d] : { id: abc[d], group: randInt(4) } ));
-    var links = [];
-    for (var i = 0; i < edgeCount; ++i) {
-        const source = abc[randInt(nodeCount)];
-        const target = abc[randInt(nodeCount)];
-        if (source != target) {
-            links.push(simple ? [source, target] : { source, target });
-        }
-    }
-    return { nodes, links };
-}
-
-function randomTree(depth) {
-    depth = depth || 0;
-    var leaf = depth != 0 && (depth == 4 || randInt(2) == 0);
-
-    if (leaf) {
-        return {
-            value: randInt(25)
-        };
-    } else {
-        return {
-            value: randInt(25),
-            children: Array(randInt(4, 1)).fill(0).map(_ => randomTree(depth + 1))
-        };
-    }
-}
-
 function randomNumArray() {
-    return Array(49).fill(25).map(randInt);
+    return Array(16).fill(25).map(randInt);
 }
 
-function randomXYZArray(keyRanges) {
-    keyRanges = keyRanges || [25, 25, 4];
-    return Array(100).fill(25).map(_ => randomXYZObject(keyRanges));
-}
+var data = randomNumArray();
 
-function randomXYZObject(keyRanges) {
-    const keys = "xyzwu".slice(0, keyRanges.length);
-    var ans = {};
-    for (var i in keys) {
-        const key = keys[i];
-        const range = keyRanges[i];
-        ans[key] = randInt(range);
-    }
-    return ans;
-}
+splendid.show(data);
 
-function randomSimpleThing() {
-    const options = [randomGraph, randomNumArray, randomTree, randomXYZArray];
-    return randomPick(options)();
-}
-
-function randomAnyArray() {
-    return Array(4).fill(0).map(randomSimpleThing);
-}
-
-function force(data, label) {
-    return { data: data, SplendidLabel: label };
-}
-
-var data = {
-    "Graph": randomGraph(),
-    "SimpleGraph": randomGraph(true),
-    "Numbers": randomNumArray(),
-    "Tree": randomTree(),
-    "XYArray": randomXYZArray([25, 25]),
-    "XYZArray": randomXYZArray(),
-    "XYZWArray": randomXYZArray([25, 25, 4, 4]),
-    "ObjectTree": { a: randomSimpleThing(), b: { c: randomSimpleThing(), e: randomSimpleThing() } },
-    "AnyArray": randomAnyArray()
-};
-
-var forced = Object.keys(data).map(
-    key => force(data[key], key));
-splendid.show(forced);
 </script>

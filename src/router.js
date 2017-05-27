@@ -11,67 +11,9 @@ router.SimpleRouter = class {
     constructor() {
         this.patterns = [
             {
-                label: "Graph",
-                test: test.objectNestedTest(
-                    {
-                        nodes: test.isArrayOf(x => test.hasKeys(x, ["id"])),
-                        links: test.isExactObjArray(["source", "target"])
-                    }
-                ),
-                draw: draw.force()
-            },
-            {
-                label: "SimpleGraph",
-                test: test.objectNestedTest(
-                    {
-                        nodes: test.isFlatArray,
-                        links: test.isArrayOf(x => Array.isArray(x) && x.length == 2)
-                    }
-                ),
-                process: process.graphify,
-                draw: draw.force()
-            },
-            {
-                label: "Tree",
-                test: test.isNodeTree,
-                process: process.hierarchize,
-                draw: draw.tree()
-            },
-            {
-                label: "ObjectTree",
-                test: test.isObject,
-                process: process.digObjectTree,
-                draw: draw.nested()
-            },
-            {
                 label: "Numbers",
                 test: test.isNumericArray,
-                draw: draw.bar()
-            },
-            {
-                label: "XYArray",
-                test: test.isExactObjArray(["x", "y"]),
-                process: process.chain([
-                    process.fillXYZ(["x", "y", "z", "w"]),
-                    process.sortByX]),
-                draw: draw.line()
-            },
-            {
-                label: "XYZArray",
-                test: test.isExactObjArray(["x", "y", "z"]),
                 draw: draw.scatter()
-            },
-            {
-                label: "XYZWArray",
-                test: test.isExactObjArray(["x", "y", "z", "w"]),
-                process: process.sortByX,
-                draw: draw.line()
-            },
-            {
-                label: "AnyArray",
-                test: Array.isArray,
-                process: process.wrapArray,
-                draw: draw.nested()
             }
         ]
     }
@@ -99,11 +41,7 @@ router.SimpleRouter = class {
                 return pattern;
             }
         }
-        return {
-            label: "Ignored",
-            test: () => true,
-            draw: draw.empty()
-        };
+        throw "Data format not supported"
     }
 
     route(data) {
