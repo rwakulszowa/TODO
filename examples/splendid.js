@@ -101,176 +101,70 @@ function wrapConstructor(cls) {
     return inner;
 }
 
-var test = { };
+function alwaysTrue() {
+    return true; }
 
-test.isArrayOf = function(subTest) {
-    function inner(data) {
-        return Array.isArray(data) &&
-            data.every(subTest);
-    }
-    return inner;
-};
+var test = {
+    alwaysTrue };
 
-test.isNumericArray = test.isArrayOf(Number.isFinite);
-
-var tree = {};
-
-
-class Tree {
-    constructor(drawing, match) {
-        this.drawing = drawing;
-        this.match = match;
-    };
+class CanvasTree {
 
     dumps() {
         return JSON.stringify(
-            this.dump(),
+            this,
             null,
-            2);
-    }
-}
+            2); }}
 
 
-tree.leaf = class Leaf extends Tree {
-    constructor(drawing, data, match) {
-        super(drawing, match);
+class CanvasNode extends CanvasTree {
+
+    constructor(data, stencil, children) {
+        super();
         this.data = data;
-    }
-
-    dump() {
-        return {
-            "label": this.match.label
-        };
-    }
-
-    draw(sel, shape) {
-        const drawing = new this.drawing(
-            this.data,
-            this.match.label
-        );
-        drawing.draw(
-            sel,
-            shape
-        );
-    }
-};
+        this.stencil = stencil;
+        this.children = children; }}
 
 
-tree.node = class Node extends Tree {
-    constructor(drawing, children, match) {
-        super(drawing, match);
-        this.children = children;
-    }
-
-    dump() {
-        return {
-            "label": this.match.label,
-            "children": this.childrenFlat().map(x => x.dump()),
-        };
-    }
-
-    childrenFlat() {
-        return this.children.reduce(
-            function(acc, val) {
-                acc.push(...val);
-                return acc;
-            },
-            []);
-    }
-
-    draw(sel, shape) {
-        const drawing = new this.drawing(
-            this.children,
-            this.match.label
-        );
-        drawing.draw(
-            sel, shape
-        );
-    }
-};
-
-var router = {};
-
-router.SimpleRouter = class {
+class CanvasLeaf extends CanvasTree {
 
     constructor() {
-        this.patterns = [
+        super();
+        this.data = null;
+        this.stencil = null;
+        this.children = []; }}
+
+
+var canvasTree = {
+    CanvasNode,
+    CanvasLeaf };
+
+class SimpleRouter {
+
+    static patterns() {
+        return [
             {
                 label: "Numbers",
-                test: test.isNumericArray,
-                draw: draw.scatter()
-            }
-        ];
-    }
+                test: test.alwaysTrue,
+                stencil: draw.scatter() }]; }
 
-    isForced(obj) {
-        return obj && Object.keys(obj).indexOf("SplendidLabel") != -1;
-    }
+    static route(dataGraphNode) {
+        return this.patterns()[0].stencil; }  //FIXME: actually do something useful here
 
-    matchByLabel(data) {
-        return this.patterns.find(x => x.label == data.SplendidLabel);
-    }
+    static buildCanvasTree(dataGraphNode) {
+        if (dataGraphNode.child) {
+            const data = dataGraphNode.child.nodes.map(n => n.value);
+            const canvas = this.route(dataGraphNode);
+            const children = dataGraphNode.child.nodes.map(this.buildCanvasTree);
+            return new canvasTree.CanvasNode(
+                data,
+                canvas,
+                children); }
+        else {
+            return new canvasTree.CanvasLeaf(); }}}
 
-    unwrapForcedData(data) {
-        return data.data;
-    }
 
-    extend(patterns) {
-        this.patterns = patterns.concat(this.patterns);
-        return this;
-    }
-
-    match(data) {
-        for (var pattern of this.patterns) {
-            if (pattern.test(data)) {
-                return pattern;
-            }
-        }
-        throw "Data format not supported"
-    }
-
-    route(data) {
-        var match;
-
-        if (this.isForced(data)) {
-            match = this.matchByLabel(data);
-            data = this.unwrapForcedData(data);
-        } else {
-            match = this.match(data);
-        }
-
-        const draw$$1 = match.draw;
-        data = match.process ? match.process(data) : data;
-
-        return {
-            draw: draw$$1,
-            data,
-            match
-        }
-    }
-
-    buildTree(data) {
-        var t;
-        const routed = this.route(data);
-
-        if (routed.draw.isLeaf()) {
-            t = new tree.leaf(
-                routed.draw,
-                routed.data,
-                routed.match);
-        } else {
-            const children = routed.data.map(
-                arr => arr.map(
-                    d => this.buildTree(d)));
-            t = new tree.node(
-                routed.draw,
-                children,
-                routed.match);
-        }
-
-        return t;
-    }
-};
+var router = {
+    SimpleRouter };
 
 class DataGraphNode {
 
@@ -289,15 +183,18 @@ class DataGraph {
 function makeGraph(data) {  // data: Array<Node>, Node: Pair<Int, Array<Node>>
     return new DataGraph(
         data.map(_makeNode),
-        []); }
+        []); }  //FIXME: allow edges
 
 function _makeNode(data) {
-    var childGraph = data.children ?
-        makeGraph(data.children) : null;
+    var childGraph =
+        data.children ?
+            makeGraph(data.children) :
+            null;
 
     return new DataGraphNode(
         data.value,
         childGraph); }
+
 
 var datagraph = {
     makeGraph,
@@ -340,23 +237,22 @@ utils.mapTree = function(tree, fun) {
     return tree;
 };
 
-//TODO: turn this into a d3-like object
-function show(data, size, container, extras) {
+function show(data, size, container) {
     size = size || { x: 860, y: 640 };
     container = container || d3.select("body")
 	  .append("svg")
 	    .attr("width", size.x)
 	    .attr("height", size.y);
-    extras = extras || [];
 
-    const routerInstance = new router.SimpleRouter();
-    const tree = routerInstance.buildTree(data, extras);
-    tree.draw(container, size);
+    const routerCls = router.SimpleRouter;
+    const tree = routerCls.buildCanvasTree(data);
+    // tree.paint(container, size);//TODO
 }
 
 exports.show = show;
 exports.draw = draw;
 exports.dataGraph = datagraph;
+exports.canvasTree = canvasTree;
 exports.router = router;
 exports.test = test;
 exports.utils = utils;

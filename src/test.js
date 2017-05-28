@@ -1,13 +1,5 @@
-var test = { };
+function alwaysTrue() {
+    return true; }
 
-test.isArrayOf = function(subTest) {
-    function inner(data) {
-        return Array.isArray(data) &&
-            data.every(subTest);
-    }
-    return inner;
-}
-
-test.isNumericArray = test.isArrayOf(Number.isFinite);
-
-export default test;
+export default {
+    alwaysTrue };
