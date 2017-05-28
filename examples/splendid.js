@@ -101,8 +101,6 @@ function wrapConstructor(cls) {
     return inner;
 }
 
-var process = { };
-
 var test = { };
 
 test.isArrayOf = function(subTest) {
@@ -274,6 +272,38 @@ router.SimpleRouter = class {
     }
 };
 
+class DataGraphNode {
+
+    constructor(value, child) {
+        this.value = value;
+        this.child = child; }}
+
+
+class DataGraph {
+
+    constructor(nodes, edges) {
+        this.nodes = nodes;
+        this.edges = edges; }}
+
+
+function makeGraph(data) {  // data: Array<Node>, Node: Pair<Int, Array<Node>>
+    return new DataGraph(
+        data.map(_makeNode),
+        []); }
+
+function _makeNode(data) {
+    var childGraph = data.children ?
+        makeGraph(data.children) : null;
+
+    return new DataGraphNode(
+        data.value,
+        childGraph); }
+
+var datagraph = {
+    makeGraph,
+    DataGraph,
+    DataGraphNode };
+
 var utils = {};
 
 utils.groupByKeys = function(seq, keys) {
@@ -326,7 +356,7 @@ function show(data, size, container, extras) {
 
 exports.show = show;
 exports.draw = draw;
-exports.process = process;
+exports.dataGraph = datagraph;
 exports.router = router;
 exports.test = test;
 exports.utils = utils;
