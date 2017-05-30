@@ -1,6 +1,5 @@
 import router from "./src/router"
 
-
 function show(data, size, container) {
     size = size || { x: 860, y: 640 };
     container = container || d3.select("body")
@@ -15,7 +14,7 @@ function show(data, size, container) {
 
 
 export {show};
-export {default as draw} from "./src/draw";  //TODO: rename
+export {default as stencil} from "./src/stencil";
 export {default as dataGraph} from "./src/datagraph";
 export {default as canvasTree} from "./src/canvastree";
 export {default as router} from "./src/router";

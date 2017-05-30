@@ -4,68 +4,42 @@
     (factory((global.splendid = global.splendid || {})));
 }(this, (function (exports) { 'use strict';
 
-var draw = { };
-
-
-class BaseDrawing {
+class Stencil {
 
     constructor(data, label) {
         this.data = data;
-        this.label = label;
-    }
+        this.label = label; }
 
-    draw(sel, shape) {
-        // abstract method of sorts
+    paint(sel, shape) {
     }
 
     minDimension(shape) {
-        return Math.min(shape.x, shape.y);
-    }
+        return Math.min(shape.x, shape.y); }
 
     path(a, b) {
         return "M" + a.x + "," + a.y
             + "C" + a.x + "," + (a.y + b.y) / 2
             + " " + b.x + "," + (a.y + b.y) / 2
-            + " " + b.x + "," + b.y;
-    }
+            + " " + b.x + "," + b.y; }
 
     translate(x, y) {
-        return "translate(" + x + "," + y + ")";
-    }
-
-}
-
-
-class ActualDrawing extends BaseDrawing {
-
-    constructor(data, label) {
-        super(data, label);
-    }
-
-    static isLeaf() {
-        return true;
-    }
+        return "translate(" + x + "," + y + ")"; }
 
     chart(sel, shape, margin) {
         return sel.append("g")
             .attr("class", "chart")
-            .attr("transform", this.translate(margin * shape.x, margin * shape.y));
-    }
+            .attr("transform", this.translate(margin * shape.x, margin * shape.y)); }
 
     xRange(shape, margin) {
-        return [margin * shape.x, (1 - margin) * shape.x];
-    }
+        return [margin * shape.x, (1 - margin) * shape.x]; }
 
     yRange(shape, margin) {
-        return [(1 - margin) * shape.y, margin * shape.y];
-    }
-
-}
+        return [(1 - margin) * shape.y, margin * shape.y]; } }
 
 
-class Scatter extends ActualDrawing {
+class Scatter extends Stencil {
 
-    draw(sel, shape) {
+    paint(sel, shape) {
         var self = this;
         var margin = 0.1;
         var radius = self.minDimension(shape) / 25;
@@ -87,19 +61,13 @@ class Scatter extends ActualDrawing {
                 .attr("cx", function(d, i) { return x(i); })
                 .attr("cy", function(d) { return y(d); })
                 .attr("r", 9);
-    }
 
-}
+        return circle.nodes(); }}
 
-draw.scatter = wrapConstructor(Scatter);
 
-// Local stuff
-function wrapConstructor(cls) {
-    function inner() {
-        return cls;
-    }
-    return inner;
-}
+var stencil = {
+    Stencil,
+    Scatter };
 
 function alwaysTrue() {
     return true; }
@@ -145,7 +113,7 @@ class SimpleRouter {
             {
                 label: "Numbers",
                 test: test.alwaysTrue,
-                stencil: draw.scatter() }]; }
+                stencil: stencil.Scatter }]; }
 
     static route(dataGraphNode) {
         return this.patterns()[0].stencil; }  //FIXME: actually do something useful here
@@ -250,7 +218,7 @@ function show(data, size, container) {
 }
 
 exports.show = show;
-exports.draw = draw;
+exports.stencil = stencil;
 exports.dataGraph = datagraph;
 exports.canvasTree = canvasTree;
 exports.router = router;
