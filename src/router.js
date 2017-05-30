@@ -1,4 +1,4 @@
-import draw from "./draw"
+import stencil from "./stencil"
 import test from "./test"
 import canvasTree from "./canvastree"
 
@@ -10,7 +10,7 @@ class SimpleRouter {
             {
                 label: "Numbers",
                 test: test.alwaysTrue,
-                stencil: draw.scatter() }]; }
+                stencil: stencil.Scatter }]; }
 
     static route(dataGraphNode) {
         return this.patterns()[0].stencil; }  //FIXME: actually do something useful here

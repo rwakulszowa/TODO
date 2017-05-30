@@ -22,8 +22,18 @@ function randomNumArray() {
     return Array(16).fill(25).map(randInt);
 }
 
-var data = randomNumArray();
+function wrap(data) {
+    return [
+        {
+            value: "root",
+            children: data.map(
+                x => (
+                    {
+                        value: x,
+                        children: null }))}]}
 
-splendid.show(data);
+var ans = splendid.show(
+    wrap(
+        randomNumArray()));
 
 </script>
