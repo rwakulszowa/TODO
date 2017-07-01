@@ -48,15 +48,23 @@ class Scatter extends Stencil {
             .range([baseYRange[0] - radius, baseYRange[1] + radius])
             .domain(d3.extent(self.data));
 
-        var circle = self.chart(sel, shape, margin).selectAll("circle")
-            .data(self.data)
-            .enter().append("circle")
+        var dotG = self.chart(sel, shape, margin)
+            .selectAll("circle")
+                .data(self.data)
+            .enter()
+            .append("g")
                 .attr("class", "dot")
-                .attr("cx", function(d, i) { return x(i); })
-                .attr("cy", function(d) { return y(d); })
-                .attr("r", 9);
+                .attr("transform", function(d, i) {
+                    return self.translate(
+                        x(i) - radius / 2,
+                        y(d) - radius / 2) });
 
-        return circle.nodes(); }}
+        dotG.append("circle")
+            .attr("cx", radius / 2)
+            .attr("cy", radius / 2)
+            .attr("r", radius);
+
+        return dotG.nodes(); }}
 
 
 export default {

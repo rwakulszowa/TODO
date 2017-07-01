@@ -1,7 +1,7 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-    typeof define === 'function' && define.amd ? define(['exports'], factory) :
-    (factory((global.splendid = global.splendid || {})));
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (factory((global.splendid = global.splendid || {})));
 }(this, (function (exports) { 'use strict';
 
 class Stencil {
@@ -54,15 +54,23 @@ class Scatter extends Stencil {
             .range([baseYRange[0] - radius, baseYRange[1] + radius])
             .domain(d3.extent(self.data));
 
-        var circle = self.chart(sel, shape, margin).selectAll("circle")
-            .data(self.data)
-            .enter().append("circle")
+        var dotG = self.chart(sel, shape, margin)
+            .selectAll("circle")
+                .data(self.data)
+            .enter()
+            .append("g")
                 .attr("class", "dot")
-                .attr("cx", function(d, i) { return x(i); })
-                .attr("cy", function(d) { return y(d); })
-                .attr("r", 9);
+                .attr("transform", function(d, i) {
+                    return self.translate(
+                        x(i) - radius / 2,
+                        y(d) - radius / 2) });
 
-        return circle.nodes(); }}
+        dotG.append("circle")
+            .attr("cx", radius / 2)
+            .attr("cy", radius / 2)
+            .attr("r", radius);
+
+        return dotG.nodes(); }}
 
 
 var stencil = {
@@ -268,19 +276,20 @@ utils.mapTree = function(tree, fun) {
     return tree;
 };
 
-function show(data, size, container) {
+function show(data, size, rootContainer) {
     size = size || { x: 860, y: 640 };
-    container = container || d3.select("body")
-	  .append("svg")
-	    .attr("width", size.x)
-	    .attr("height", size.y);
+    rootContainer = rootContainer || d3.select("body");
+
+    const container = rootContainer
+  	  .append("svg")
+  	    .attr("width", size.x)
+  	    .attr("height", size.y);
 
     const graph = dataGraph.makeGraph(data).nodes[0];  //TODO: use makeNode instead
     const routerCls = router.SimpleRouter;
     const canvasTree = routerCls.buildCanvasTree(graph);
     const paintingTree = canvasTree.paint(container, size);
-    return paintingTree;
-}
+    return paintingTree; }
 
 exports.show = show;
 exports.stencil = stencil;

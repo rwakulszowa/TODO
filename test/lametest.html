@@ -14,12 +14,12 @@
 //A super-lame "test", just temporary
 function randInt(limit, offset) {
     offset = offset || 0;
-    limit = limit || 25;
+    limit = limit || 9;
     return Math.floor(Math.random() * (limit - offset) + offset);
 }
 
-function randomNumArray() {
-    return Array(16).fill(25).map(randInt);
+function randomNumArray(n) {
+    return Array(n).fill(0).map(randInt);
 }
 
 function wrap(data) {
@@ -34,6 +34,13 @@ function wrap(data) {
 
 var ans = splendid.show(
     wrap(
-        randomNumArray()));
+        randomNumArray(9)));
+
+ans.children.forEach(node => splendid.show(
+    wrap(
+        randomNumArray(4)),
+    {x: 25, y: 25},
+    d3.select(node.container)))
+
 
 </script>

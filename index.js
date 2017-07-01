@@ -1,12 +1,14 @@
 import router from "./src/router"
 import dataGraph from "./src/datagraph"
 
-function show(data, size, container) {
+function show(data, size, rootContainer) {
     size = size || { x: 860, y: 640 };
-    container = container || d3.select("body")
-	  .append("svg")
-	    .attr("width", size.x)
-	    .attr("height", size.y);
+    rootContainer = rootContainer || d3.select("body");
+
+    const container = rootContainer
+        .append("svg")
+  	        .attr("width", size.x)
+  	        .attr("height", size.y);
 
     const graph = dataGraph.makeGraph(data).nodes[0];  //TODO: use makeNode instead
     const routerCls = router.SimpleRouter;
