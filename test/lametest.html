@@ -2,10 +2,14 @@
 <html>
 <head>
 <meta charset="utf-8">
-<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="../../js_res/d3.v4.min.js"></script>
 <script src="../build/splendid.js"></script>
-<script src="https://rawgit.com/rwakulszowa/d3-mesh/v0.3.1/examples/d3-mesh.js"></script>
+<script src="../../js_res/d3-mesh.js"></script>
 <style>
+.chart .dot {
+  fill: none;
+  stroke: black
+}
 </style>
 <body>
 </body>
@@ -22,23 +26,21 @@ function randomNumArray(n) {
     return Array(n).fill(0).map(randInt);
 }
 
-function wrap(data) {
-    return [
-        {
-            value: "root",
-            children: data.map(
-                x => (
-                    {
-                        value: x,
-                        children: null }))}]}
+function wrap(x) {
+    return {
+        value: x,
+        children: null };}
 
-var ans = splendid.show(
-    wrap(
-        randomNumArray(9)));
+var graphData = {
+    children: randomNumArray(9).map(wrap),
+    network: [] };
+
+var ans = splendid.show(graphData);
 
 ans.children.forEach(node => splendid.show(
-    wrap(
-        randomNumArray(4)),
+    {
+        children: randomNumArray(4).map(wrap),
+        network: [] },
     {x: 25, y: 25},
     d3.select(node.container)))
 

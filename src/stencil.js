@@ -1,7 +1,8 @@
 class Stencil {
 
-    constructor(data, label) {
+    constructor(data, network, label) {
         this.data = data;
+        this.network = network;
         this.label = label; }
 
     paint(sel, shape) {

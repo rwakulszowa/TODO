@@ -10,7 +10,7 @@ function show(data, size, rootContainer) {
   	        .attr("width", size.x)
   	        .attr("height", size.y);
 
-    const graph = dataGraph.makeGraph(data).nodes[0];  //TODO: use makeNode instead
+    const graph = dataGraph.makeNode(data);
     const routerCls = router.SimpleRouter;
     const canvasTree = routerCls.buildCanvasTree(graph);
     const paintingTree = canvasTree.paint(container, size);

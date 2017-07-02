@@ -12,15 +12,18 @@ class DataGraph {
         this.edges = edges; }}
 
 
-function makeGraph(data) {  // data: Array<Node>, Node: Pair<Int, Array<Node>>
+function makeGraph(nodes, edges) {
     return new DataGraph(
-        data.map(_makeNode),
-        []); }  //FIXME: allow edges
+        nodes.map(makeNode),
+        edges); }
 
-function _makeNode(data) {
+
+function makeNode(data) {
     var childGraph =
         data.children ?
-            makeGraph(data.children) :
+            makeGraph(
+                data.children,
+                data.network) :
             null;
 
     return new DataGraphNode(
@@ -30,5 +33,6 @@ function _makeNode(data) {
 
 export default {
     makeGraph,
+    makeNode,
     DataGraph,
     DataGraphNode };

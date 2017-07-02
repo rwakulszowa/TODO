@@ -6,8 +6,9 @@
 
 class Stencil {
 
-    constructor(data, label) {
+    constructor(data, network, label) {
         this.data = data;
+        this.network = network;
         this.label = label; }
 
     paint(sel, shape) {
@@ -127,14 +128,18 @@ class CanvasTree {
 
 class CanvasNode extends CanvasTree {
 
-    constructor(data, stencil, children) {
+    constructor(data, network, stencil, children) {
         super();
         this.data = data;
+        this.network = network;
         this.stencil = stencil;
         this.children = children; }
 
     paint(container, shape) {
-        const stencilInstance = new this.stencil(this.data, "notUsed");
+        const stencilInstance = new this.stencil(
+            this.data,
+            this.network,
+            "notUsed");
         const subContainers = stencilInstance.paint(
             container,
             shape);
@@ -164,6 +169,7 @@ class CanvasLeaf extends CanvasTree {
     constructor() {
         super();
         this.data = null;
+        this.network = null;
         this.stencil = null;
         this.children = []; }
 
@@ -187,15 +193,19 @@ class SimpleRouter {
                 stencil: stencil.Scatter }]; }
 
     static route(dataGraphNode) {
-        return this.patterns()[0].stencil; }  //FIXME: actually do something useful here
+        const matches = this.patterns().filter(
+            pattern => pattern.test(dataGraphNode));
+        return matches[0].stencil; }
 
     static buildCanvasTree(dataGraphNode) {
         if (dataGraphNode.child) {
-            const data = dataGraphNode.child.nodes.map(n => n.value);
             const canvas = this.route(dataGraphNode);
+            const data = dataGraphNode.child.nodes.map(n => n.value);
+            const network = dataGraphNode.child.edges;
             const children = dataGraphNode.child.nodes.map(this.buildCanvasTree);
             return new canvasTree.CanvasNode(
                 data,
+                network,
                 canvas,
                 children); }
         else {
@@ -219,15 +229,18 @@ class DataGraph {
         this.edges = edges; }}
 
 
-function makeGraph(data) {  // data: Array<Node>, Node: Pair<Int, Array<Node>>
+function makeGraph(nodes, edges) {
     return new DataGraph(
-        data.map(_makeNode),
-        []); }  //FIXME: allow edges
+        nodes.map(makeNode),
+        edges); }
 
-function _makeNode(data) {
+
+function makeNode(data) {
     var childGraph =
         data.children ?
-            makeGraph(data.children) :
+            makeGraph(
+                data.children,
+                data.network) :
             null;
 
     return new DataGraphNode(
@@ -237,6 +250,7 @@ function _makeNode(data) {
 
 var dataGraph = {
     makeGraph,
+    makeNode,
     DataGraph,
     DataGraphNode };
 
@@ -281,11 +295,11 @@ function show(data, size, rootContainer) {
     rootContainer = rootContainer || d3.select("body");
 
     const container = rootContainer
-  	  .append("svg")
-  	    .attr("width", size.x)
-  	    .attr("height", size.y);
+        .append("svg")
+  	        .attr("width", size.x)
+  	        .attr("height", size.y);
 
-    const graph = dataGraph.makeGraph(data).nodes[0];  //TODO: use makeNode instead
+    const graph = dataGraph.makeNode(data);
     const routerCls = router.SimpleRouter;
     const canvasTree = routerCls.buildCanvasTree(graph);
     const paintingTree = canvasTree.paint(container, size);

@@ -13,15 +13,19 @@ class SimpleRouter {
                 stencil: stencil.Scatter }]; }
 
     static route(dataGraphNode) {
-        return this.patterns()[0].stencil; }  //FIXME: actually do something useful here
+        const matches = this.patterns().filter(
+            pattern => pattern.test(dataGraphNode));
+        return matches[0].stencil; }
 
     static buildCanvasTree(dataGraphNode) {
         if (dataGraphNode.child) {
-            const data = dataGraphNode.child.nodes.map(n => n.value);
             const canvas = this.route(dataGraphNode);
+            const data = dataGraphNode.child.nodes.map(n => n.value);
+            const network = dataGraphNode.child.edges;
             const children = dataGraphNode.child.nodes.map(this.buildCanvasTree);
             return new canvasTree.CanvasNode(
                 data,
+                network,
                 canvas,
                 children); }
         else {

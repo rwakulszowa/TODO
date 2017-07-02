@@ -12,14 +12,18 @@ class CanvasTree {
 
 class CanvasNode extends CanvasTree {
 
-    constructor(data, stencil, children) {
+    constructor(data, network, stencil, children) {
         super();
         this.data = data;
+        this.network = network;
         this.stencil = stencil;
         this.children = children; }
 
     paint(container, shape) {
-        const stencilInstance = new this.stencil(this.data, "notUsed");
+        const stencilInstance = new this.stencil(
+            this.data,
+            this.network,
+            "notUsed");
         const subContainers = stencilInstance.paint(
             container,
             shape);
@@ -49,6 +53,7 @@ class CanvasLeaf extends CanvasTree {
     constructor() {
         super();
         this.data = null;
+        this.network = null;
         this.stencil = null;
         this.children = []; }
 
