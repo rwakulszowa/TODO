@@ -33,8 +33,8 @@ class CanvasNode extends CanvasTree {
             console.log("childrenCount != subContainers.length: " + childrenCount + ', ' + subContainers.length); }
 
         const subShape = {  //FIXME: get shapes from stencil.paint()
-            x: shape.x / childrenCount,
-            y: shape.y / childrenCount };
+            x: shape.x / childrenCount / 5,
+            y: shape.y / childrenCount / 5};
         const childrenPaintings = this.children.map(
             (node, index) =>
                 node.paint(

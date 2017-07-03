@@ -23,7 +23,7 @@ function randInt(limit, offset) {
 }
 
 function randomNumArray(n) {
-    return Array(n).fill(0).map(randInt);
+    return Array(n).fill(0).map(x => randInt());
 }
 
 function wrap(x) {
@@ -35,14 +35,12 @@ var graphData = {
     children: randomNumArray(9).map(wrap),
     network: [] };
 
-var ans = splendid.show(graphData);
-
-ans.children.forEach(node => splendid.show(
-    {
+graphData.children = graphData.children.map(
+    node => ({
+        value: node.value,
         children: randomNumArray(4).map(wrap),
-        network: [] },
-    {x: 25, y: 25},
-    d3.select(node.container)))
+        network: [] }));
 
+var ans = splendid.show(graphData);
 
 </script>

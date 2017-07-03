@@ -22,7 +22,9 @@ class SimpleRouter {
             const canvas = this.route(dataGraphNode);
             const data = dataGraphNode.child.nodes.map(n => n.value);
             const network = dataGraphNode.child.edges;
-            const children = dataGraphNode.child.nodes.map(this.buildCanvasTree);
+            const children = dataGraphNode.child.nodes.map(
+                this.buildCanvasTree,
+                this);
             return new canvasTree.CanvasNode(
                 data,
                 network,

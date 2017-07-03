@@ -4,6 +4,7 @@
   (factory((global.splendid = global.splendid || {})));
 }(this, (function (exports) { 'use strict';
 
+//TODO: use TypeScript?
 class Stencil {
 
     constructor(data, network, label) {
@@ -11,6 +12,9 @@ class Stencil {
         this.network = network;
         this.label = label; }
 
+    // sel: d3.selection
+    // shape: {x: Number, y: Number}
+    // returns: <d3.selection>
     paint(sel, shape) {
     }
 
@@ -25,11 +29,6 @@ class Stencil {
 
     translate(x, y) {
         return "translate(" + x + "," + y + ")"; }
-
-    chart(sel, shape, margin) {
-        return sel.append("g")
-            .attr("class", "chart")
-            .attr("transform", this.translate(margin * shape.x, margin * shape.y)); }
 
     xRange(shape, margin) {
         return [margin * shape.x, (1 - margin) * shape.x]; }
@@ -48,30 +47,33 @@ class Scatter extends Stencil {
         var baseXRange = self.xRange(shape, margin);
         var x = d3.scaleLinear()
             .range([baseXRange[0] + radius, baseXRange[1] - radius])
-            .domain([0, self.data.length]);
+            .domain([0, self.data.length - 1]);
 
         var baseYRange = self.yRange(shape, margin);
         var y = d3.scaleLinear()
             .range([baseYRange[0] - radius, baseYRange[1] + radius])
             .domain(d3.extent(self.data));
 
-        var dotG = self.chart(sel, shape, margin)
+        var dotG = sel
+            .append("g")
+                .attr("class", "chart")
             .selectAll("circle")
                 .data(self.data)
             .enter()
             .append("g")
                 .attr("class", "dot")
-                .attr("transform", function(d, i) {
-                    return self.translate(
-                        x(i) - radius / 2,
-                        y(d) - radius / 2) });
+                .attr(
+                    "transform",
+                    (d, i) => self.translate(
+                        x(i),
+                        y(d)));
 
         dotG.append("circle")
             .attr("cx", radius / 2)
             .attr("cy", radius / 2)
             .attr("r", radius);
 
-        return dotG.nodes(); }}
+        return dotG.nodes().map(d3.select); }}
 
 
 var stencil = {
@@ -149,8 +151,8 @@ class CanvasNode extends CanvasTree {
             console.log("childrenCount != subContainers.length: " + childrenCount + ', ' + subContainers.length); }
 
         const subShape = {  //FIXME: get shapes from stencil.paint()
-            x: shape.x / childrenCount,
-            y: shape.y / childrenCount };
+            x: shape.x / childrenCount / 5,
+            y: shape.y / childrenCount / 5};
         const childrenPaintings = this.children.map(
             (node, index) =>
                 node.paint(
@@ -202,7 +204,9 @@ class SimpleRouter {
             const canvas = this.route(dataGraphNode);
             const data = dataGraphNode.child.nodes.map(n => n.value);
             const network = dataGraphNode.child.edges;
-            const children = dataGraphNode.child.nodes.map(this.buildCanvasTree);
+            const children = dataGraphNode.child.nodes.map(
+                this.buildCanvasTree,
+                this);
             return new canvasTree.CanvasNode(
                 data,
                 network,
