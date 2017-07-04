@@ -24,22 +24,21 @@ class CanvasNode extends CanvasTree {
             this.data,
             this.network,
             "notUsed");
-        const subContainers = stencilInstance.paint(
+        const childrenCount = this.children.length;
+        const painted = stencilInstance.paint(
             container,
             shape);
-        const childrenCount = this.children.length;
+        const subContainers = painted.subSelections;
+        const subShapes = painted.subShapes;
 
         if (childrenCount != subContainers.length) {
             console.log("childrenCount != subContainers.length: " + childrenCount + ', ' + subContainers.length); }
 
-        const subShape = {  //FIXME: get shapes from stencil.paint()
-            x: shape.x / childrenCount / 5,
-            y: shape.y / childrenCount / 5};
         const childrenPaintings = this.children.map(
             (node, index) =>
                 node.paint(
                     subContainers[index],
-                    subShape));
+                    subShapes[index]));
 
         return new paintingTree.PaintingNode(
             this,

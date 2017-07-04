@@ -8,7 +8,7 @@ class Stencil {
 
     // sel: d3.selection
     // shape: {x: Number, y: Number}
-    // returns: <d3.selection>
+    // returns: {<d3.selection>, <{x: Number, y: Number}>}
     paint(sel, shape) {
     }
 
@@ -63,11 +63,20 @@ class Scatter extends Stencil {
                         y(d)));
 
         dotG.append("circle")
-            .attr("cx", radius / 2)
-            .attr("cy", radius / 2)
+            .attr("cx", radius)
+            .attr("cy", radius)
             .attr("r", radius);
 
-        return dotG.nodes().map(d3.select); }}
+        var subSelections = dotG.nodes().map(d3.select);
+        var subShapes = Array(subSelections.length).fill(
+            {
+                x: 2 * radius,
+                y: 2 * radius });
+
+        return {
+            subSelections,
+            subShapes };
+      }}
 
 
 export default {
