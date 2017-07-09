@@ -15,7 +15,9 @@ class Stencil {
     minDimension(shape) {
         return Math.min(shape.x, shape.y); }
 
-    path(a, b) {
+    path(shapePair) {
+        const a = shapePair[0];
+        const b = shapePair[1];
         return "M" + a.x + "," + a.y
             + "C" + a.x + "," + (a.y + b.y) / 2
             + " " + b.x + "," + (a.y + b.y) / 2
@@ -48,14 +50,16 @@ class Scatter extends Stencil {
             .range([baseYRange[0] - radius, baseYRange[1] + radius])
             .domain(d3.extent(self.data));
 
-        var dotG = sel
+        var chart = sel
             .append("g")
-                .attr("class", "chart")
-            .selectAll("circle")
+                .attr("class", "chart");
+
+        var dotG = chart
+            .selectAll(".node")
                 .data(self.data)
             .enter()
             .append("g")
-                .attr("class", "dot")
+                .attr("class", "node")
                 .attr(
                     "transform",
                     (d, i) => self.translate(
@@ -67,16 +71,38 @@ class Scatter extends Stencil {
             .attr("cy", radius)
             .attr("r", radius);
 
+        var edgeData = self.network.map(edge => {  //TODO: Shape / Figure classes, move this logic to a method
+            const sourceIndex = edge[0];
+            const targetIndex = edge[1];
+            const sourceValue = self.data[sourceIndex];
+            const targetValue = self.data[targetIndex];
+            const sourcePosition = {
+                x: x(sourceIndex),
+                y: y(sourceValue) };
+            const targetPosition = {
+                x: x(targetIndex),
+                y: y(targetValue) };
+            return [
+              sourcePosition,
+              targetPosition]; })
+
+        var edge = chart
+            .selectAll(".edge")
+                .data(edgeData)
+            .enter().append("path")
+                .attr("class", "edge")
+                .attr("d", self.path);
+
         var subSelections = dotG.nodes().map(d3.select);
         var subShapes = Array(subSelections.length).fill(
             {
                 x: 2 * radius,
                 y: 2 * radius });
 
+        // TODO: return nodes as well
         return {
             subSelections,
-            subShapes };
-      }}
+            subShapes }; }}
 
 
 export default {

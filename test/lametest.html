@@ -6,9 +6,14 @@
 <script src="../build/splendid.js"></script>
 <script src="../../js_res/d3-mesh.js"></script>
 <style>
-.chart .dot {
+.node {
   fill: none;
   stroke: black
+}
+.edge {
+  fill: none;
+  stroke: black;
+  stroke-width: 2px
 }
 </style>
 <body>
@@ -33,13 +38,13 @@ function wrap(x) {
 
 var graphData = {
     children: randomNumArray(9).map(wrap),
-    network: [] };
+    network: randomNumArray(4).map(_ => [randInt(9), randInt(9)]) };
 
 graphData.children = graphData.children.map(
     node => ({
         value: node.value,
         children: randomNumArray(4).map(wrap),
-        network: [] }));
+        network: randomNumArray(4).map(_ => [randInt(4), randInt(4)]) }));
 
 var ans = splendid.show(graphData);
 
