@@ -15,11 +15,15 @@ class SimpleRouter {
     static route(dataGraphNode) {
         const matches = this.patterns().filter(
             pattern => pattern.test(dataGraphNode));
-        return matches[0].stencil; }
+        if (matches.length > 0) {
+            return matches[0] }
+        else {
+            console.log(`No match for ${JSON.stringify(dataGraphNode, 0, 4)}`);
+            return null; }}
 
     static buildCanvasTree(dataGraphNode) {
-        if (dataGraphNode.child) {
-            const canvas = this.route(dataGraphNode);
+        const match = this.route(dataGraphNode);
+        if (match && dataGraphNode.child) {
             const data = dataGraphNode.child.nodes.map(n => n.value);
             const network = dataGraphNode.child.edges;
             const children = dataGraphNode.child.nodes.map(
@@ -28,7 +32,7 @@ class SimpleRouter {
             return new canvasTree.CanvasNode(
                 data,
                 network,
-                canvas,
+                match.stencil,
                 children); }
         else {
             return new canvasTree.CanvasLeaf(); }}}
