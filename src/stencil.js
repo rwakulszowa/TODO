@@ -1,4 +1,7 @@
+import shape from "./shape"
 //TODO: use TypeScript?
+
+
 class Stencil {
 
     constructor(data, network, label) {
@@ -7,13 +10,10 @@ class Stencil {
         this.label = label; }
 
     // sel: d3.selection
-    // shape: {x: Number, y: Number}
-    // returns: {<d3.selection>, <{x: Number, y: Number}>}
+    // shape: Shape
+    // returns: {<d3.selection>, <Shape>}
     paint(sel, shape) {
     }
-
-    minDimension(shape) {
-        return Math.min(shape.x, shape.y); }
 
     path(shapePair) {
         const a = shapePair[0];
@@ -35,17 +35,17 @@ class Stencil {
 
 class Scatter extends Stencil {
 
-    paint(sel, shape) {
+    paint(sel, parentShape) {
         var self = this;
         var margin = 0.1;
-        var radius = self.minDimension(shape) / 25;
+        var radius = Math.min(parentShape.x, parentShape.y) / 25;
 
-        var baseXRange = self.xRange(shape, margin);
+        var baseXRange = self.xRange(parentShape, margin);
         var x = d3.scaleLinear()
             .range([baseXRange[0] + radius, baseXRange[1] - radius])
             .domain([0, self.data.length - 1]);
 
-        var baseYRange = self.yRange(shape, margin);
+        var baseYRange = self.yRange(parentShape, margin);
         var y = d3.scaleLinear()
             .range([baseYRange[0] - radius, baseYRange[1] + radius])
             .domain(d3.extent(self.data));
@@ -71,20 +71,31 @@ class Scatter extends Stencil {
             .attr("cy", radius)
             .attr("r", radius);
 
-        var edgeData = self.network.map(edge => {  //TODO: Shape / Figure classes, move this logic to a method
-            const sourceIndex = edge[0];
-            const targetIndex = edge[1];
-            const sourceValue = self.data[sourceIndex];
-            const targetValue = self.data[targetIndex];
-            const sourcePosition = {
-                x: x(sourceIndex),
-                y: y(sourceValue) };
-            const targetPosition = {
-                x: x(targetIndex),
-                y: y(targetValue) };
-            return [
-              sourcePosition,
-              targetPosition]; })
+        var subSelections = dotG.nodes()
+            .map(d3.select);
+
+        var subShapes =  Array(subSelections.length)
+            .fill(null)
+            .map(
+                () =>
+                    new shape.Rectangle(
+                        2 * radius,
+                        2 * radius));
+
+        function getNodeCenter(index) {
+            const value = self.data[index];
+            const shape = subShapes[index];
+            const position = {
+                x: x(index),
+                y: y(value) };
+            return {
+                x: position.x + shape.center().x,
+                y: position.y + shape.center().y }; }
+
+        var edgeData = self.network.map(
+            edge => [
+                getNodeCenter(edge[0]),
+                getNodeCenter(edge[1])]);
 
         var edge = chart
             .selectAll(".edge")
@@ -93,13 +104,7 @@ class Scatter extends Stencil {
                 .attr("class", "edge")
                 .attr("d", self.path);
 
-        var subSelections = dotG.nodes().map(d3.select);
-        var subShapes = Array(subSelections.length).fill(
-            {
-                x: 2 * radius,
-                y: 2 * radius });
-
-        // TODO: return nodes as well
+        // TODO: return edges as well
         return {
             subSelections,
             subShapes }; }}

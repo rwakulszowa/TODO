@@ -4,7 +4,76 @@
   (factory((global.splendid = global.splendid || {})));
 }(this, (function (exports) { 'use strict';
 
+class DataGraphNode {
+
+    constructor(value, child) {
+        this.value = value;
+        this.child = child; }}
+
+
+class DataGraph {
+
+    constructor(nodes, edges) {
+        this.nodes = nodes;
+        this.edges = edges; }}
+
+
+function makeGraph(nodes, edges) {
+    return new DataGraph(
+        nodes.map(makeNode),
+        edges); }
+
+
+function makeNode(data) {
+    var childGraph =
+        data.children ?
+            makeGraph(
+                data.children,
+                data.network) :
+            null;
+
+    return new DataGraphNode(
+        data.value,
+        childGraph); }
+
+
+var dataGraph = {
+    makeGraph,
+    makeNode,
+    DataGraph,
+    DataGraphNode };
+
+class Shape {
+
+    dumps() {  //TODO: move to utils
+        return JSON.stringify(
+            this,
+            null,
+            2); }}
+
+
+class Rectangle extends Shape {
+
+    constructor(x, y) {
+        super();
+        this.x = x;
+        this.y = y; }
+
+    boundingRectangle() {
+        return this; }
+
+    center() {
+        return {  //TODO: position class?
+            x: this.x / 2,
+            y: this.y / 2 }; }}
+
+
+var shape = {
+    Rectangle };
+
 //TODO: use TypeScript?
+
+
 class Stencil {
 
     constructor(data, network, label) {
@@ -13,13 +82,10 @@ class Stencil {
         this.label = label; }
 
     // sel: d3.selection
-    // shape: {x: Number, y: Number}
-    // returns: {<d3.selection>, <{x: Number, y: Number}>}
-    paint(sel, shape) {
+    // shape: Shape
+    // returns: {<d3.selection>, <Shape>}
+    paint(sel, shape$$1) {
     }
-
-    minDimension(shape) {
-        return Math.min(shape.x, shape.y); }
 
     path(shapePair) {
         const a = shapePair[0];
@@ -32,26 +98,26 @@ class Stencil {
     translate(x, y) {
         return "translate(" + x + "," + y + ")"; }
 
-    xRange(shape, margin) {
-        return [margin * shape.x, (1 - margin) * shape.x]; }
+    xRange(shape$$1, margin) {
+        return [margin * shape$$1.x, (1 - margin) * shape$$1.x]; }
 
-    yRange(shape, margin) {
-        return [(1 - margin) * shape.y, margin * shape.y]; } }
+    yRange(shape$$1, margin) {
+        return [(1 - margin) * shape$$1.y, margin * shape$$1.y]; } }
 
 
 class Scatter extends Stencil {
 
-    paint(sel, shape) {
+    paint(sel, parentShape) {
         var self = this;
         var margin = 0.1;
-        var radius = self.minDimension(shape) / 25;
+        var radius = Math.min(parentShape.x, parentShape.y) / 25;
 
-        var baseXRange = self.xRange(shape, margin);
+        var baseXRange = self.xRange(parentShape, margin);
         var x = d3.scaleLinear()
             .range([baseXRange[0] + radius, baseXRange[1] - radius])
             .domain([0, self.data.length - 1]);
 
-        var baseYRange = self.yRange(shape, margin);
+        var baseYRange = self.yRange(parentShape, margin);
         var y = d3.scaleLinear()
             .range([baseYRange[0] - radius, baseYRange[1] + radius])
             .domain(d3.extent(self.data));
@@ -77,20 +143,31 @@ class Scatter extends Stencil {
             .attr("cy", radius)
             .attr("r", radius);
 
-        var edgeData = self.network.map(edge => {  //TODO: Shape / Figure classes, move this logic to a method
-            const sourceIndex = edge[0];
-            const targetIndex = edge[1];
-            const sourceValue = self.data[sourceIndex];
-            const targetValue = self.data[targetIndex];
-            const sourcePosition = {
-                x: x(sourceIndex),
-                y: y(sourceValue) };
-            const targetPosition = {
-                x: x(targetIndex),
-                y: y(targetValue) };
-            return [
-              sourcePosition,
-              targetPosition]; });
+        var subSelections = dotG.nodes()
+            .map(d3.select);
+
+        var subShapes =  Array(subSelections.length)
+            .fill(null)
+            .map(
+                () =>
+                    new shape.Rectangle(
+                        2 * radius,
+                        2 * radius));
+
+        function getNodeCenter(index) {
+            const value = self.data[index];
+            const shape$$1 = subShapes[index];
+            const position = {
+                x: x(index),
+                y: y(value) };
+            return {
+                x: position.x + shape$$1.center().x,
+                y: position.y + shape$$1.center().y }; }
+
+        var edgeData = self.network.map(
+            edge => [
+                getNodeCenter(edge[0]),
+                getNodeCenter(edge[1])]);
 
         var edge = chart
             .selectAll(".edge")
@@ -99,13 +176,7 @@ class Scatter extends Stencil {
                 .attr("class", "edge")
                 .attr("d", self.path);
 
-        var subSelections = dotG.nodes().map(d3.select);
-        var subShapes = Array(subSelections.length).fill(
-            {
-                x: 2 * radius,
-                y: 2 * radius });
-
-        // TODO: return nodes as well
+        // TODO: return edges as well
         return {
             subSelections,
             subShapes }; }}
@@ -257,45 +328,6 @@ class SimpleRouter {
 var router = {
     SimpleRouter };
 
-class DataGraphNode {
-
-    constructor(value, child) {
-        this.value = value;
-        this.child = child; }}
-
-
-class DataGraph {
-
-    constructor(nodes, edges) {
-        this.nodes = nodes;
-        this.edges = edges; }}
-
-
-function makeGraph(nodes, edges) {
-    return new DataGraph(
-        nodes.map(makeNode),
-        edges); }
-
-
-function makeNode(data) {
-    var childGraph =
-        data.children ?
-            makeGraph(
-                data.children,
-                data.network) :
-            null;
-
-    return new DataGraphNode(
-        data.value,
-        childGraph); }
-
-
-var dataGraph = {
-    makeGraph,
-    makeNode,
-    DataGraph,
-    DataGraphNode };
-
 var utils = {};
 
 utils.groupByKeys = function(seq, keys) {
@@ -332,19 +364,20 @@ utils.mapTree = function(tree, fun) {
     return tree;
 };
 
-function show(data, size, rootContainer) {
-    size = size || { x: 860, y: 640 };  //TODO: Shape class
+function show(data, rootShape, rootContainer) {
+    rootShape = rootShape || new shape.Rectangle(860, 640);
     rootContainer = rootContainer || d3.select("body");
 
+    const boundingRectangle = rootShape.boundingRectangle();
     const container = rootContainer
         .append("svg")
-  	        .attr("width", size.x)
-  	        .attr("height", size.y);
+  	        .attr("width", boundingRectangle.x)
+  	        .attr("height", boundingRectangle.y);
 
     const graph = dataGraph.makeNode(data);
     const routerCls = router.SimpleRouter;
     const canvasTree = routerCls.buildCanvasTree(graph);
-    const paintingTree = canvasTree.paint(container, size);
+    const paintingTree = canvasTree.paint(container, rootShape);
     return paintingTree; }
 
 exports.show = show;
@@ -354,6 +387,7 @@ exports.canvasTree = canvasTree;
 exports.paintingTree = paintingTree;
 exports.router = router;
 exports.test = test;
+exports.shape = shape;
 exports.utils = utils;
 
 Object.defineProperty(exports, '__esModule', { value: true });
