@@ -9,21 +9,19 @@ class PaintingTree {
 
 class PaintingNode extends PaintingTree {
 
-    constructor(canvasNode, container, shape, children) {  //TODO: Painting class (container + shape + some magic)
+    constructor(canvasNode, figure, children) {
         super();
         this.canvasNode = canvasNode;
-        this.container = container;
-        this.shape = shape;
+        this.figure = figure,
         this.children = children; }}
 
 
 class PaintingLeaf extends PaintingTree {
 
-    constructor(canvasNode, container) {
+    constructor(canvasNode, figure) {
         super();
         this.canvasNode = canvasNode;
-        this.container = container;
-        this.shape = null;
+        this.figure = figure,
         this.children = []; }}
 
 

@@ -19,31 +19,24 @@ class CanvasNode extends CanvasTree {
         this.stencil = stencil;
         this.children = children; }
 
-    paint(container, shape) {
+    paint(figure) {
         const stencilInstance = new this.stencil(
             this.data,
             this.network,
             "notUsed");
         const childrenCount = this.children.length;
-        const painted = stencilInstance.paint(
-            container,
-            shape);
-        const subContainers = painted.subSelections;
-        const subShapes = painted.subShapes;
+        const subFigures = stencilInstance.paint(figure);
 
-        if (childrenCount != subContainers.length) {
-            console.log("childrenCount != subContainers.length: " + childrenCount + ', ' + subContainers.length); }
+        if (childrenCount != subFigures.length) {
+            console.log("childrenCount != subFigures.length: " + childrenCount + ', ' + subFigures.length); }
 
         const childrenPaintings = this.children.map(
-            (node, index) =>
-                node.paint(
-                    subContainers[index],
-                    subShapes[index]));
+            (node, index) =>  //TODO: just use lodash
+                node.paint(subFigures[index]));
 
         return new paintingTree.PaintingNode(
             this,
-            container,
-            shape,
+            figure,
             childrenPaintings); }}
 
 

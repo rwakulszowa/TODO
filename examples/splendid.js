@@ -1,7 +1,7 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.splendid = global.splendid || {})));
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+    typeof define === 'function' && define.amd ? define(['exports'], factory) :
+    (factory((global.splendid = global.splendid || {})));
 }(this, (function (exports) { 'use strict';
 
 class DataGraphNode {
@@ -43,6 +43,21 @@ var dataGraph = {
     DataGraph,
     DataGraphNode };
 
+class Figure {
+
+    constructor(shape, selection) {
+        this.shape = shape;
+        this.selection = selection; }
+
+    dumps() {  //TODO: move to utils
+        return JSON.stringify(
+            this,
+            null,
+            2); }}
+
+var figure = {
+    Figure };
+
 class Shape {
 
     dumps() {  //TODO: move to utils
@@ -81,10 +96,7 @@ class Stencil {
         this.network = network;
         this.label = label; }
 
-    // sel: d3.selection
-    // shape: Shape
-    // returns: {<d3.selection>, <Shape>}
-    paint(sel, shape$$1) {
+    paint(parentFigure) {
     }
 
     path(shapePair) {
@@ -107,8 +119,9 @@ class Stencil {
 
 class Scatter extends Stencil {
 
-    paint(sel, parentShape) {
+    paint(parentFigure) {
         var self = this;
+        var parentShape = parentFigure.shape;
         var margin = 0.1;
         var radius = Math.min(parentShape.x, parentShape.y) / 25;
 
@@ -122,7 +135,7 @@ class Scatter extends Stencil {
             .range([baseYRange[0] - radius, baseYRange[1] + radius])
             .domain(d3.extent(self.data));
 
-        var chart = sel
+        var chart = parentFigure.selection
             .append("g")
                 .attr("class", "chart");
 
@@ -177,9 +190,9 @@ class Scatter extends Stencil {
                 .attr("d", self.path);
 
         // TODO: return edges as well
-        return {
-            subSelections,
-            subShapes }; }}
+
+        return subSelections.map(
+            (sel, i) => new figure.Figure(subShapes[i], sel)); }}
 
 
 var stencil = {
@@ -203,21 +216,19 @@ class PaintingTree {
 
 class PaintingNode extends PaintingTree {
 
-    constructor(canvasNode, container, shape, children) {  //TODO: Painting class (container + shape + some magic)
+    constructor(canvasNode, figure, children) {
         super();
         this.canvasNode = canvasNode;
-        this.container = container;
-        this.shape = shape;
+        this.figure = figure,
         this.children = children; }}
 
 
 class PaintingLeaf extends PaintingTree {
 
-    constructor(canvasNode, container) {
+    constructor(canvasNode, figure) {
         super();
         this.canvasNode = canvasNode;
-        this.container = container;
-        this.shape = null;
+        this.figure = figure,
         this.children = []; }}
 
 
@@ -243,31 +254,24 @@ class CanvasNode extends CanvasTree {
         this.stencil = stencil;
         this.children = children; }
 
-    paint(container, shape) {
+    paint(figure) {
         const stencilInstance = new this.stencil(
             this.data,
             this.network,
             "notUsed");
         const childrenCount = this.children.length;
-        const painted = stencilInstance.paint(
-            container,
-            shape);
-        const subContainers = painted.subSelections;
-        const subShapes = painted.subShapes;
+        const subFigures = stencilInstance.paint(figure);
 
-        if (childrenCount != subContainers.length) {
-            console.log("childrenCount != subContainers.length: " + childrenCount + ', ' + subContainers.length); }
+        if (childrenCount != subFigures.length) {
+            console.log("childrenCount != subFigures.length: " + childrenCount + ', ' + subFigures.length); }
 
         const childrenPaintings = this.children.map(
-            (node, index) =>
-                node.paint(
-                    subContainers[index],
-                    subShapes[index]));
+            (node, index) =>  //TODO: just use lodash
+                node.paint(subFigures[index]));
 
         return new paintingTree.PaintingNode(
             this,
-            container,
-            shape,
+            figure,
             childrenPaintings); }}
 
 
@@ -364,20 +368,23 @@ utils.mapTree = function(tree, fun) {
     return tree;
 };
 
-function show(data, rootShape, rootContainer) {
-    rootShape = rootShape || new shape.Rectangle(860, 640);
-    rootContainer = rootContainer || d3.select("body");
-
-    const boundingRectangle = rootShape.boundingRectangle();
-    const container = rootContainer
-        .append("svg")
-  	        .attr("width", boundingRectangle.x)
-  	        .attr("height", boundingRectangle.y);
+function show(data, rootFigure) {
+    if (!rootFigure) {
+        const rootShape = new shape.Rectangle(
+            860,
+            640);
+        const container = d3.select("body")
+            .append("svg")
+      	        .attr("width", rootShape.x)
+      	        .attr("height", rootShape.y);
+        rootFigure = new figure.Figure(
+            rootShape,
+            container); }
 
     const graph = dataGraph.makeNode(data);
     const routerCls = router.SimpleRouter;
     const canvasTree = routerCls.buildCanvasTree(graph);
-    const paintingTree = canvasTree.paint(container, rootShape);
+    const paintingTree = canvasTree.paint(rootFigure);
     return paintingTree; }
 
 exports.show = show;
@@ -388,6 +395,7 @@ exports.paintingTree = paintingTree;
 exports.router = router;
 exports.test = test;
 exports.shape = shape;
+exports.figure = figure;
 exports.utils = utils;
 
 Object.defineProperty(exports, '__esModule', { value: true });

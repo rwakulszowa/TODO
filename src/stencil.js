@@ -1,3 +1,4 @@
+import figure from "./figure"
 import shape from "./shape"
 //TODO: use TypeScript?
 
@@ -9,10 +10,7 @@ class Stencil {
         this.network = network;
         this.label = label; }
 
-    // sel: d3.selection
-    // shape: Shape
-    // returns: {<d3.selection>, <Shape>}
-    paint(sel, shape) {
+    paint(parentFigure) {
     }
 
     path(shapePair) {
@@ -35,8 +33,9 @@ class Stencil {
 
 class Scatter extends Stencil {
 
-    paint(sel, parentShape) {
+    paint(parentFigure) {
         var self = this;
+        var parentShape = parentFigure.shape;
         var margin = 0.1;
         var radius = Math.min(parentShape.x, parentShape.y) / 25;
 
@@ -50,7 +49,7 @@ class Scatter extends Stencil {
             .range([baseYRange[0] - radius, baseYRange[1] + radius])
             .domain(d3.extent(self.data));
 
-        var chart = sel
+        var chart = parentFigure.selection
             .append("g")
                 .attr("class", "chart");
 
@@ -105,9 +104,9 @@ class Scatter extends Stencil {
                 .attr("d", self.path);
 
         // TODO: return edges as well
-        return {
-            subSelections,
-            subShapes }; }}
+
+        return subSelections.map(
+            (sel, i) => new figure.Figure(subShapes[i], sel)); }}
 
 
 export default {
