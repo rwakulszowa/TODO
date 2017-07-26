@@ -31,9 +31,9 @@ function randomNumArray(n) {
     return Array(n).fill(0).map(x => randInt());
 }
 
-function wrap(x) {
+function wrap(value, index) {
     return {
-        value: x,
+        value: { x: index, y: value },
         children: null };}
 
 var graphData = {

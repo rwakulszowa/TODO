@@ -130,12 +130,12 @@ class Scatter extends Stencil {
         var baseXRange = self.xRange(parentShape, margin);
         var x = d3.scaleLinear()
             .range([baseXRange[0] + radius, baseXRange[1] - radius])
-            .domain([0, self.data.length - 1]);
+            .domain(d3.extent(self.data.map(d => d.x)));
 
         var baseYRange = self.yRange(parentShape, margin);
         var y = d3.scaleLinear()
             .range([baseYRange[0] - radius, baseYRange[1] + radius])
-            .domain(d3.extent(self.data));
+            .domain(d3.extent(self.data.map(d => d.y)));  //TODO: key / accessor  //TODO: utils / local cache for unwrapped arrays?
 
         var chart = parentFigure.selection
             .append("g")
@@ -149,9 +149,10 @@ class Scatter extends Stencil {
                 .attr("class", "node")
                 .attr(
                     "transform",
-                    (d, i) => self.translate(
-                        x(i),
-                        y(d)));
+                    d =>
+                        self.translate(
+                            x(d.x),
+                            y(d.y)));
 
         dotG.append("circle")
             .attr("r", radius);
@@ -171,8 +172,8 @@ class Scatter extends Stencil {
             const value = self.data[index];
             const shape$$1 = subShapes[index];
             return {
-                x: x(index),
-                y: y(value) }; }
+                x: x(value.x),
+                y: y(value.y) }; }
 
         var edgeData = self.network.map(
             edge => [
