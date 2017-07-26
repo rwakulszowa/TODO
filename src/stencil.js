@@ -25,10 +25,12 @@ class Stencil {
         return "translate(" + x + "," + y + ")"; }
 
     xRange(shape, margin) {
-        return [margin * shape.x, (1 - margin) * shape.x]; }
+        const nigram = 1.0 - margin;
+        return [-0.5 * nigram * shape.x, 0.5 * nigram * shape.x]; }
 
     yRange(shape, margin) {
-        return [(1 - margin) * shape.y, margin * shape.y]; } };
+        const nigram = 1.0 - margin;
+        return [0.5 * nigram * shape.y, -0.5 * nigram * shape.y]; } };
 
 
 class Scatter extends Stencil {
@@ -66,8 +68,6 @@ class Scatter extends Stencil {
                         y(d)));
 
         dotG.append("circle")
-            .attr("cx", radius)
-            .attr("cy", radius)
             .attr("r", radius);
 
         var subSelections = dotG.nodes()
@@ -84,12 +84,9 @@ class Scatter extends Stencil {
         function getNodeCenter(index) {
             const value = self.data[index];
             const shape = subShapes[index];
-            const position = {
-                x: x(index),
-                y: y(value) };
             return {
-                x: position.x + shape.center().x,
-                y: position.y + shape.center().y }; }
+                x: x(index),
+                y: y(value) }; }
 
         var edgeData = self.network.map(
             edge => [

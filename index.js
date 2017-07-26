@@ -12,7 +12,9 @@ function show(data, rootFigure) {
         const container = d3.select("body")
             .append("svg")
       	        .attr("width", rootShape.x)
-      	        .attr("height", rootShape.y);
+      	        .attr("height", rootShape.y)
+            .append("g")
+                .attr("transform", `translate(${rootShape.x / 2}, ${rootShape.y / 2})`);
         rootFigure = new figure.Figure(
             rootShape,
             container); }

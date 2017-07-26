@@ -111,10 +111,12 @@ class Stencil {
         return "translate(" + x + "," + y + ")"; }
 
     xRange(shape$$1, margin) {
-        return [margin * shape$$1.x, (1 - margin) * shape$$1.x]; }
+        const nigram = 1.0 - margin;
+        return [-0.5 * nigram * shape$$1.x, 0.5 * nigram * shape$$1.x]; }
 
     yRange(shape$$1, margin) {
-        return [(1 - margin) * shape$$1.y, margin * shape$$1.y]; } }
+        const nigram = 1.0 - margin;
+        return [0.5 * nigram * shape$$1.y, -0.5 * nigram * shape$$1.y]; } }
 
 
 class Scatter extends Stencil {
@@ -152,8 +154,6 @@ class Scatter extends Stencil {
                         y(d)));
 
         dotG.append("circle")
-            .attr("cx", radius)
-            .attr("cy", radius)
             .attr("r", radius);
 
         var subSelections = dotG.nodes()
@@ -170,12 +170,9 @@ class Scatter extends Stencil {
         function getNodeCenter(index) {
             const value = self.data[index];
             const shape$$1 = subShapes[index];
-            const position = {
-                x: x(index),
-                y: y(value) };
             return {
-                x: position.x + shape$$1.center().x,
-                y: position.y + shape$$1.center().y }; }
+                x: x(index),
+                y: y(value) }; }
 
         var edgeData = self.network.map(
             edge => [
@@ -376,7 +373,9 @@ function show(data, rootFigure) {
         const container = d3.select("body")
             .append("svg")
       	        .attr("width", rootShape.x)
-      	        .attr("height", rootShape.y);
+      	        .attr("height", rootShape.y)
+            .append("g")
+                .attr("transform", `translate(${rootShape.x / 2}, ${rootShape.y / 2})`);
         rootFigure = new figure.Figure(
             rootShape,
             container); }
