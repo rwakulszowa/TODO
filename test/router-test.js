@@ -7,22 +7,25 @@ var tape = require("tape"),
 
 tape("SimpleRouter.buildCanvasTree builds a CanvasTree from a nested DataGraphNode", function(test) {
     const dgTree = new dg.DataGraphNode(
-        "root",
+        {},
         new dg.DataGraph(
             [
                 new dg.DataGraphNode(
-                    1,
+                    { x: 1 },
                     null),
                 new dg.DataGraphNode(
-                    2,
+                    { x: 2 },
                     null)],
-            []))
+            []));
 
     test.same(
         SimpleRouter.buildCanvasTree(dgTree),
         new ct.CanvasNode(
-            [1, 2],
-            splendid.draw.scatter(),
+            [
+                { x: 1 },
+                { x: 2 }],
+            [],
+            splendid.stencil.Scatter,
             [
                 new ct.CanvasLeaf(),
                 new ct.CanvasLeaf()]))

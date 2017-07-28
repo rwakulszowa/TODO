@@ -15,8 +15,7 @@ tape("dataGraph.makeNode makes from simple data", function(test) {
             1,
             null));
 
-    test.end();
-})
+    test.end(); })
 
 tape("dataGraph.makeNode makes from nested data", function(test) {
     var data =
@@ -29,16 +28,16 @@ tape("dataGraph.makeNode makes from nested data", function(test) {
 
     test.same(
         dg.makeNode(data),
-                new dg.DataGraphNode(
-                    1,
-                    new dg.DataGraph(
-                        [
-                            new dg.DataGraphNode(
-                                1,
-                                null),
-                            new dg.DataGraphNode(
-                                2,
-                                null)],
-                        [])));
-    test.end();
-})
+        new dg.DataGraphNode(
+            1,
+            new dg.DataGraph(
+                [
+                    new dg.DataGraphNode(
+                        1,
+                        null),
+                    new dg.DataGraphNode(
+                        2,
+                        null)],
+                [])));
+
+    test.end(); })
