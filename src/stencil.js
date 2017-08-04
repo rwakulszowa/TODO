@@ -51,6 +51,14 @@ class Scatter extends Stencil {
             .range([baseYRange[0] - radius, baseYRange[1] + radius])
             .domain(d3.extent(self.data.map(d => d.y)));  //TODO: key / accessor  //TODO: utils / local cache for unwrapped arrays?
 
+        var r = d3.scaleLinear()
+            .range([radius / 2, radius])
+            .domain(d3.extent(self.data.map(d => d.z)));
+
+        var c = d3.scaleLinear()
+            .range(["red", "green"])
+            .domain(d3.extent(self.data.map(d => d.w)));
+
         var chart = parentFigure.selection
             .append("g")
                 .attr("class", "chart");
@@ -69,18 +77,18 @@ class Scatter extends Stencil {
                             y(d.y)));
 
         dotG.append("circle")
-            .attr("r", radius);
+            .attr("r", d => r(d.z))
+            .style("stroke", d => c(d.w));
 
         var subSelections = dotG.nodes()
             .map(d3.select);
 
-        var subShapes =  Array(subSelections.length)
-            .fill(null)
-            .map(
-                () =>
-                    new shape.Rectangle(
-                        2 * radius,
-                        2 * radius));
+        var subShapes = self.data
+            .map(d => {
+                const elementRadius = r(d.z);
+                return new shape.Rectangle(  //FIXME: return circles here
+                    2 * elementRadius,
+                    2 * elementRadius);});
 
         function getNodeCenter(index) {
             const value = self.data[index];
