@@ -13,7 +13,8 @@
 .edge {
   fill: none;
   stroke: black;
-  stroke-width: 2px
+  stroke-width: 0.5px;
+  opacity: 0.5
 }
 </style>
 <body>
@@ -33,7 +34,7 @@ function randomNumArray(n) {
 
 function wrap(value, index) {
     return {
-        value: { x: index, y: value },
+        value: { x: index, y: value, z: value, w: index },
         children: null };}
 
 var graphData = {
