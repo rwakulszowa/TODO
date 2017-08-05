@@ -115,6 +115,87 @@ class Scatter extends Stencil {
             (sel, i) => new figure.Figure(subShapes[i], sel)); }}
 
 
+//FIXME: abstract out common logic
+class Squares extends Stencil {
+
+    paint(parentFigure) {
+        var self = this;
+        var parentShape = parentFigure.shape;
+        var margin = 0.1;
+        var radius = Math.min(parentShape.x, parentShape.y) / 25;
+
+        var baseXRange = self.xRange(parentShape, margin);
+        var x = d3.scaleLinear()
+            .range([baseXRange[0] + radius, baseXRange[1] - radius])
+            .domain(d3.extent(self.data.map(d => d.x)));
+
+        var baseYRange = self.yRange(parentShape, margin);
+        var y = d3.scaleLinear()
+            .range([baseYRange[0] - radius, baseYRange[1] + radius])
+            .domain(d3.extent(self.data.map(d => d.y)));
+
+        var chart = parentFigure.selection
+            .append("g")
+                .attr("class", "chart");
+
+        var squareG = chart
+            .selectAll(".node")
+                .data(self.data)
+            .enter()
+            .append("g")
+                .attr("class", "node")
+                .attr(
+                    "transform",
+                    d =>
+                        self.translate(
+                            x(d.x),
+                            y(d.y)));
+
+        squareG.append("rect")
+            // We're in the center, but square will be drawn from top-left corner -> gotta compensate for that
+            .attr(
+                "transform",
+                d =>
+                    self.translate(
+                        -radius,
+                        -radius))
+            .attr("width", 2 * radius)
+            .attr("height", 2 * radius);
+
+        var subSelections = squareG.nodes()
+            .map(d3.select);
+
+        var subShapes = self.data
+            .map(d => new shape.Rectangle(
+                2 * radius,
+                2 * radius));
+
+        function getNodeCenter(index) {
+            const value = self.data[index];
+            const shape = subShapes[index];
+            return {
+                x: x(value.x),
+                y: y(value.y) }; }
+
+        var edgeData = self.network.map(
+            edge => [
+                getNodeCenter(edge[0]),
+                getNodeCenter(edge[1])]);
+
+        var edge = chart
+            .selectAll(".edge")
+                .data(edgeData)
+            .enter().append("path")
+                .attr("class", "edge")
+                .attr("d", self.path);
+
+        // TODO: return edges as well
+
+        return subSelections.map(
+            (sel, i) => new figure.Figure(subShapes[i], sel)); }}
+
+
 export default {
     Stencil,
-    Scatter }
+    Scatter,
+    Squares }

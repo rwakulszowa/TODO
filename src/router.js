@@ -8,8 +8,18 @@ class SimpleRouter {
     static patterns() {
         return [
             {
+                label: "Nil",
+                test: test.isDataGraphLeaf,
+                stencil: null },
+            {
                 label: "Numbers",
-                test: test.alwaysTrue,
+                test: test.dataGraphChildValues(
+                    test.hasNKeys(2)),
+                stencil: stencil.Squares },
+            {
+                label: "Scatter",
+                test: test.dataGraphChildValues(
+                    test.hasNKeys(4)),
                 stencil: stencil.Scatter }]; }
 
     static route(dataGraphNode) {

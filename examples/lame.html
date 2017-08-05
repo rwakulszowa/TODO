@@ -32,19 +32,24 @@ function randomNumArray(n) {
     return Array(n).fill(0).map(x => randInt());
 }
 
-function wrap(value, index) {
+function wrap4(value, index) {
     return {
         value: { x: index, y: value, z: value, w: index },
         children: null };}
 
+function wrap2(value, index) {
+    return {
+        value: { x: index, y: value },
+        children: null };}
+
 var graphData = {
-    children: randomNumArray(9).map(wrap),
+    children: randomNumArray(9).map(wrap2),
     network: randomNumArray(4).map(_ => [randInt(9), randInt(9)]) };
 
 graphData.children = graphData.children.map(
     node => ({
         value: node.value,
-        children: randomNumArray(4).map(wrap),
+        children: randomNumArray(4).map(wrap4),
         network: randomNumArray(4).map(_ => [randInt(4), randInt(4)]) }));
 
 var ans = splendid.show(graphData);
