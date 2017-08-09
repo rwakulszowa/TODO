@@ -20,7 +20,7 @@ class SimpleRouter {
                 label: "Scatter",
                 test: test.dataGraphChildValues(
                     test.hasNKeys(4)),
-                stencil: stencil.Scatter }]; }
+                stencil: stencil.Scatter }]; }  //TODO: use functions as stencils, not classes
 
     static route(dataGraphNode) {
         const matches = this.patterns().filter(
