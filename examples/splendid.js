@@ -196,7 +196,8 @@ class XYSizeColorStencil extends Stencil {
 
     paint(parentFigure) {
         var self = this;
-        var parentShape = parentFigure.shape;
+        var parentShape = parentFigure.shape.inner(
+            self.parentShapeClass());
         var margin = 0.1;  //TODO: compute a availableShape (parentShape * margin)
         const dims = self.dims(parentShape, margin);
 
@@ -272,12 +273,8 @@ class XYSizeColorStencil extends Stencil {
 
 class Scatter extends XYSizeColorStencil {
 
-    dims(shape$$1, margin) {
-        return [
-            this.x(shape$$1, margin),
-            this.y(shape$$1, margin),
-            this.color(shape$$1, margin),
-            this.size(shape$$1, margin)];}
+    parentShapeClass() {
+        return shape.Rectangle; }
 
     x(shape$$1, margin) {
         const baseRange = this.xRange(shape$$1, margin);
@@ -315,9 +312,7 @@ class Scatter extends XYSizeColorStencil {
     subShape(dims, datum) {
         const [x, y, c, s] = dims;
         const subRadius = s(datum.z);
-        return new shape.Rectangle(
-            2 * subRadius,
-            2 * subRadius);}
+        return new shape.Circle(subRadius);}
 
     nodeAttributes(dims) {  //FIXME: is this necessary? shouldn't it always be default?
         const [x, y] = dims;
@@ -336,6 +331,9 @@ class Scatter extends XYSizeColorStencil {
 
 
 class Squares extends XYSizeColorStencil {
+
+    parentShapeClass() {
+        return shape.Rectangle; }
 
     x(shape$$1, margin) {
         const baseRange = this.xRange(shape$$1, margin);
