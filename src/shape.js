@@ -1,5 +1,10 @@
 class Shape {
 
+    inner(target) {
+        return handleByClass(
+            this._inner_handlers(),
+            target)}
+
     dumps() {  //TODO: move to utils
         return JSON.stringify(
             this,
@@ -14,14 +19,51 @@ class Rectangle extends Shape {
         this.x = x;
         this.y = y; }
 
-    boundingRectangle() {
-        return this; }
 
-    center() {
-        return {  //TODO: position class?
-            x: this.x / 2,
-            y: this.y / 2 }; }}
+    _inner_handlers() {
+        const self = this;
+        return [
+            [
+                Rectangle,
+                () => new Rectangle(
+                    self.x,
+                    self.y)],
+            [
+                Circle,
+                () => new Circle(
+                    Math.min(
+                        this.x,
+                        this.y)
+                    / 2)]];}}
+
+
+class Circle extends Shape {
+
+    constructor(r) {
+        super();
+        this.r = r; }
+
+    _inner_handlers() {
+        const self = this;
+        return [
+            [
+                Circle,
+                () => new Circle(self.r)],
+            [
+                Rectangle,
+                () => new Rectangle(
+                    self.r * Math.sqrt(2),
+                    self.r * Math.sqrt(2))]];}}
+
+
+function handleByClass(pairs, target) {
+    function test(pair) {
+        const [cls, callback] = pair;
+        return cls == target; }
+    const [cls, callback] = pairs.find(test);
+    return callback();}
 
 
 export default {
+    Circle,
     Rectangle };
