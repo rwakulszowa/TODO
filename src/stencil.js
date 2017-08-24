@@ -25,13 +25,13 @@ class Stencil {
     translate(x, y) {
         return "translate(" + x + "," + y + ")"; }
 
-    xRange(shape, margin) {
+    xRange(size, margin) {
         const nigram = 1.0 - margin;
-        return [-0.5 * nigram * shape.x, 0.5 * nigram * shape.x]; }
+        return [-0.5 * nigram * size, 0.5 * nigram * size]; }
 
-    yRange(shape, margin) {
+    yRange(size, margin) {
         const nigram = 1.0 - margin;
-        return [0.5 * nigram * shape.y, -0.5 * nigram * shape.y]; }
+        return [0.5 * nigram * size, -0.5 * nigram * size]; }
 
     constantScale(value) {  //NOTE: this returns a function, not a scale -> do it properly if possible
         const scale = d3.scaleLinear()
@@ -59,12 +59,6 @@ class Stencil {
 
 
 class XYSizeColorStencil extends Stencil {
-
-    nodeSizeLimit(containerShape) {  //TODO: should return an object / shape?
-        return Math.min(
-            containerShape.x,
-            containerShape.y)
-            / 25;}
 
     paint(parentFigure) {
         var self = this;
@@ -145,25 +139,29 @@ class XYSizeColorStencil extends Stencil {
 
 class Scatter extends XYSizeColorStencil {
 
-    parentShapeClass() {
-        return shape.Rectangle; }
+    parentShapeClass() {  //FIXME: this should be a param accessible by caller (CanvasTree); it should handle transforming parent's shape
+        return shape.Circle; }
+
+    nodeSizeLimit(containerShape) {
+        return containerShape.r
+          / this.data.length; }
 
     x(shape, margin) {
-        const baseRange = this.xRange(shape, margin);
         const radiusLimit = this.nodeSizeLimit(shape);
+        const range = this.xRange(
+            2 * (shape.r - 2 * radiusLimit),
+            margin);
         return this.linearExtentScale(
-            [
-                baseRange[0] + radiusLimit,
-                baseRange[1] - radiusLimit],
+            range,
             "x");}
 
     y(shape, margin) {
-        const baseRange = this.yRange(shape, margin);
         const radiusLimit = this.nodeSizeLimit(shape);
+        const range = this.yRange(
+            2 * (shape.r - 2 * radiusLimit),
+            margin);
         return this.linearExtentScale(
-            [
-                baseRange[0] - radiusLimit,
-                baseRange[1] + radiusLimit],
+            range,
             "y");}
 
     size(shape, margin) {
@@ -207,22 +205,29 @@ class Squares extends XYSizeColorStencil {
     parentShapeClass() {
         return shape.Rectangle; }
 
+    nodeSizeLimit(containerShape) {
+        return Math.min(
+            containerShape.x,
+            containerShape.y)
+            / 2
+            / this.data.length;}
+
     x(shape, margin) {
-        const baseRange = this.xRange(shape, margin);
         const sizeLimit = this.nodeSizeLimit(shape);
+        const range = this.xRange(
+            shape.x - 2 * sizeLimit,
+            margin);
         return this.linearExtentScale(
-            [
-                baseRange[0] + sizeLimit,
-                baseRange[1] - sizeLimit],
+            range,
             "x");}
 
     y(shape, margin) {
-        const baseRange = this.yRange(shape, margin);
         const sizeLimit = this.nodeSizeLimit(shape);
+        const range = this.yRange(
+            shape.y - 2 * sizeLimit,
+            margin);
         return this.linearExtentScale(
-            [
-                baseRange[0] - sizeLimit,
-                baseRange[1] + sizeLimit],
+            range,
             "y");}
 
     subShape(dims, datum) {
