@@ -19,6 +19,10 @@ class Rectangle extends Shape {
         this.x = x;
         this.y = y; }
 
+    scale(factor) {
+        return new Rectangle(
+            factor * this.x,
+            factor * this.y);}
 
     _inner_handlers() {
         const self = this;
@@ -42,6 +46,9 @@ class Circle extends Shape {
     constructor(r) {
         super();
         this.r = r; }
+
+    scale(factor) {
+        return new Circle(factor * this.r);}
 
     _inner_handlers() {
         const self = this;

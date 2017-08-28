@@ -25,13 +25,15 @@ class Stencil {
     translate(x, y) {
         return "translate(" + x + "," + y + ")"; }
 
-    xRange(size, margin) {
-        const nigram = 1.0 - margin;
-        return [-0.5 * nigram * size, 0.5 * nigram * size]; }
+    xRange(size) {
+        return [
+            -0.5 * size,
+            0.5 * size]; }
 
-    yRange(size, margin) {
-        const nigram = 1.0 - margin;
-        return [0.5 * nigram * size, -0.5 * nigram * size]; }
+    yRange(size) {
+        return [
+            0.5 * size,
+            -0.5 * size]; }
 
     constantScale(value) {  //NOTE: this returns a function, not a scale -> do it properly if possible
         const scale = d3.scaleLinear()
@@ -64,8 +66,9 @@ class XYSizeColorStencil extends Stencil {
         var self = this;
         var parentShape = parentFigure.shape.inner(
             self.parentShapeClass());
-        var margin = 0.1;  //TODO: compute a availableShape (parentShape * margin)
-        const dims = self.dims(parentShape, margin);
+        var margin = 0.1;
+        var availableShape = parentShape.scale(1 - margin);
+        const dims = self.dims(availableShape);
 
         var chart = parentFigure.selection
             .append("g")
@@ -116,23 +119,23 @@ class XYSizeColorStencil extends Stencil {
         return subSelections.map(
             (sel, i) => new figure.Figure(subShapes[i], sel)); }
 
-    dims(shape, margin) {  //TODO: just return an object?  //TODO: fix dimension names for this class? -> it's supposed to be simple, not extensible for now
+    dims(shape) {  //TODO: just return an object?  //TODO: fix dimension names for this class? -> it's supposed to be simple, not extensible for now
         return [
-            this.x(shape, margin),
-            this.y(shape, margin),
-            this.color(shape, margin),
-            this.size(shape, margin)];}
+            this.x(shape),
+            this.y(shape),
+            this.color(shape),
+            this.size(shape)];}
 
-    x(shape, margin) {
+    x(shape) {
         return this.constantScale(0);}
 
-    y(shape, margin) {
+    y(shape) {
         return this.constantScale(0);}
 
-    color(shape, margin) {
+    color(shape) {
         return this.constantScale("black");}
 
-    size(shape, margin) {
+    size(shape) {
         const sizeLimit = this.nodeSizeLimit(shape);
         return this.constantScale(sizeLimit);}}
 
@@ -146,25 +149,23 @@ class Scatter extends XYSizeColorStencil {
         return containerShape.r
           / this.data.length; }
 
-    x(shape, margin) {
+    x(shape) {
         const radiusLimit = this.nodeSizeLimit(shape);
         const range = this.xRange(
-            2 * (shape.r - 2 * radiusLimit),
-            margin);
+            2 * (shape.r - 2 * radiusLimit));
         return this.linearExtentScale(
             range,
             "x");}
 
-    y(shape, margin) {
+    y(shape) {
         const radiusLimit = this.nodeSizeLimit(shape);
         const range = this.yRange(
-            2 * (shape.r - 2 * radiusLimit),
-            margin);
+            2 * (shape.r - 2 * radiusLimit));
         return this.linearExtentScale(
             range,
             "y");}
 
-    size(shape, margin) {
+    size(shape) {
         const radiusLimit = this.nodeSizeLimit(shape);
         return this.linearExtentScale(
             [
@@ -172,7 +173,7 @@ class Scatter extends XYSizeColorStencil {
                 radiusLimit],
             "z");}
 
-    color(shape, margin) {
+    color(shape) {
         return this.linearExtentScale(
             [
                 "red",
@@ -212,20 +213,18 @@ class Squares extends XYSizeColorStencil {
             / 2
             / this.data.length;}
 
-    x(shape, margin) {
+    x(shape) {
         const sizeLimit = this.nodeSizeLimit(shape);
         const range = this.xRange(
-            shape.x - 2 * sizeLimit,
-            margin);
+            shape.x - 2 * sizeLimit);
         return this.linearExtentScale(
             range,
             "x");}
 
-    y(shape, margin) {
+    y(shape) {
         const sizeLimit = this.nodeSizeLimit(shape);
         const range = this.yRange(
-            shape.y - 2 * sizeLimit,
-            margin);
+            shape.y - 2 * sizeLimit);
         return this.linearExtentScale(
             range,
             "y");}

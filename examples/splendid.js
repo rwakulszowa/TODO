@@ -79,6 +79,10 @@ class Rectangle extends Shape {
         this.x = x;
         this.y = y; }
 
+    scale(factor) {
+        return new Rectangle(
+            factor * this.x,
+            factor * this.y);}
 
     _inner_handlers() {
         const self = this;
@@ -102,6 +106,9 @@ class Circle extends Shape {
     constructor(r) {
         super();
         this.r = r; }
+
+    scale(factor) {
+        return new Circle(factor * this.r);}
 
     _inner_handlers() {
         const self = this;
@@ -153,13 +160,15 @@ class Stencil {
     translate(x, y) {
         return "translate(" + x + "," + y + ")"; }
 
-    xRange(size, margin) {
-        const nigram = 1.0 - margin;
-        return [-0.5 * nigram * size, 0.5 * nigram * size]; }
+    xRange(size) {
+        return [
+            -0.5 * size,
+            0.5 * size]; }
 
-    yRange(size, margin) {
-        const nigram = 1.0 - margin;
-        return [0.5 * nigram * size, -0.5 * nigram * size]; }
+    yRange(size) {
+        return [
+            0.5 * size,
+            -0.5 * size]; }
 
     constantScale(value) {  //NOTE: this returns a function, not a scale -> do it properly if possible
         const scale = d3.scaleLinear()
@@ -192,8 +201,9 @@ class XYSizeColorStencil extends Stencil {
         var self = this;
         var parentShape = parentFigure.shape.inner(
             self.parentShapeClass());
-        var margin = 0.1;  //TODO: compute a availableShape (parentShape * margin)
-        const dims = self.dims(parentShape, margin);
+        var margin = 0.1;
+        var availableShape = parentShape.scale(1 - margin);
+        const dims = self.dims(availableShape);
 
         var chart = parentFigure.selection
             .append("g")
@@ -244,23 +254,23 @@ class XYSizeColorStencil extends Stencil {
         return subSelections.map(
             (sel, i) => new figure.Figure(subShapes[i], sel)); }
 
-    dims(shape$$1, margin) {  //TODO: just return an object?  //TODO: fix dimension names for this class? -> it's supposed to be simple, not extensible for now
+    dims(shape$$1) {  //TODO: just return an object?  //TODO: fix dimension names for this class? -> it's supposed to be simple, not extensible for now
         return [
-            this.x(shape$$1, margin),
-            this.y(shape$$1, margin),
-            this.color(shape$$1, margin),
-            this.size(shape$$1, margin)];}
+            this.x(shape$$1),
+            this.y(shape$$1),
+            this.color(shape$$1),
+            this.size(shape$$1)];}
 
-    x(shape$$1, margin) {
+    x(shape$$1) {
         return this.constantScale(0);}
 
-    y(shape$$1, margin) {
+    y(shape$$1) {
         return this.constantScale(0);}
 
-    color(shape$$1, margin) {
+    color(shape$$1) {
         return this.constantScale("black");}
 
-    size(shape$$1, margin) {
+    size(shape$$1) {
         const sizeLimit = this.nodeSizeLimit(shape$$1);
         return this.constantScale(sizeLimit);}}
 
@@ -274,25 +284,23 @@ class Scatter extends XYSizeColorStencil {
         return containerShape.r
           / this.data.length; }
 
-    x(shape$$1, margin) {
+    x(shape$$1) {
         const radiusLimit = this.nodeSizeLimit(shape$$1);
         const range = this.xRange(
-            2 * (shape$$1.r - 2 * radiusLimit),
-            margin);
+            2 * (shape$$1.r - 2 * radiusLimit));
         return this.linearExtentScale(
             range,
             "x");}
 
-    y(shape$$1, margin) {
+    y(shape$$1) {
         const radiusLimit = this.nodeSizeLimit(shape$$1);
         const range = this.yRange(
-            2 * (shape$$1.r - 2 * radiusLimit),
-            margin);
+            2 * (shape$$1.r - 2 * radiusLimit));
         return this.linearExtentScale(
             range,
             "y");}
 
-    size(shape$$1, margin) {
+    size(shape$$1) {
         const radiusLimit = this.nodeSizeLimit(shape$$1);
         return this.linearExtentScale(
             [
@@ -300,7 +308,7 @@ class Scatter extends XYSizeColorStencil {
                 radiusLimit],
             "z");}
 
-    color(shape$$1, margin) {
+    color(shape$$1) {
         return this.linearExtentScale(
             [
                 "red",
@@ -340,20 +348,18 @@ class Squares extends XYSizeColorStencil {
             / 2
             / this.data.length;}
 
-    x(shape$$1, margin) {
+    x(shape$$1) {
         const sizeLimit = this.nodeSizeLimit(shape$$1);
         const range = this.xRange(
-            shape$$1.x - 2 * sizeLimit,
-            margin);
+            shape$$1.x - 2 * sizeLimit);
         return this.linearExtentScale(
             range,
             "x");}
 
-    y(shape$$1, margin) {
+    y(shape$$1) {
         const sizeLimit = this.nodeSizeLimit(shape$$1);
         const range = this.yRange(
-            shape$$1.y - 2 * sizeLimit,
-            margin);
+            shape$$1.y - 2 * sizeLimit);
         return this.linearExtentScale(
             range,
             "y");}

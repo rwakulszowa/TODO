@@ -38,3 +38,13 @@ tape("Circle computes its inner rectangle", function(test) {
             sideLen));
 
     test.end(); })
+
+
+tape("Circle scales", function(test) {
+    const circle = new shape.Circle(100);
+
+    test.same(
+        circle.scale(0.5),
+        new shape.Circle(50));
+
+    test.end(); })
