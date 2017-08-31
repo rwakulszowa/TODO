@@ -6,6 +6,7 @@ var tape = require("tape"),
 
 
 tape("SimpleRouter.buildCanvasTree builds a CanvasTree from a nested DataGraphNode", function(test) {
+    const router = new SimpleRouter();
     const dgTree = new dg.DataGraphNode(
         {},
         new dg.DataGraph(
@@ -19,7 +20,7 @@ tape("SimpleRouter.buildCanvasTree builds a CanvasTree from a nested DataGraphNo
             []));
 
     test.same(
-        SimpleRouter.buildCanvasTree(dgTree),
+        router.buildCanvasTree(dgTree),
         new ct.CanvasNode(
             [
                 { x: 1, y: 1, z: 1, w: 1 },

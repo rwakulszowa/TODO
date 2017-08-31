@@ -513,7 +513,7 @@ var canvasTree = {
 
 class SimpleRouter {
 
-    static patterns() {
+    patterns() {
         return [
             {
                 label: "Nil",
@@ -530,7 +530,7 @@ class SimpleRouter {
                     test.hasNKeys(4)),
                 stencil: stencil.Scatter }]; }  //TODO: use functions as stencils, not classes
 
-    static route(dataGraphNode) {
+    route(dataGraphNode) {
         const matches = this.patterns().filter(
             pattern => pattern.test(dataGraphNode));
         if (matches.length > 0) {
@@ -539,7 +539,7 @@ class SimpleRouter {
             console.log(`No match for ${JSON.stringify(dataGraphNode, 0, 4)}`);
             return null; }}
 
-    static buildCanvasTree(dataGraphNode) {
+    buildCanvasTree(dataGraphNode) {
         const match = this.route(dataGraphNode);
         if (match && dataGraphNode.child) {
             const data = dataGraphNode.child.nodes.map(n => n.value);
@@ -595,26 +595,29 @@ utils.mapTree = function(tree, fun) {
     return tree;
 };
 
-function show(data, rootFigure) {
-    if (!rootFigure) {
-        const rootShape = new shape.Rectangle(
-            860,
-            640);
-        const container = d3.select("body")
-            .append("svg")
-      	        .attr("width", rootShape.x)
-      	        .attr("height", rootShape.y)
-            .append("g")
-                .attr("transform", `translate(${rootShape.x / 2}, ${rootShape.y / 2})`);
-        rootFigure = new figure.Figure(
-            rootShape,
-            container); }
+function show(data, rootFigure, routerInstance) {
+    rootFigure = rootFigure || bodyFigure();
+    routerInstance = routerInstance || new router.SimpleRouter();
 
     const graph = dataGraph.makeNode(data);
-    const routerCls = router.SimpleRouter;
-    const canvasTree = routerCls.buildCanvasTree(graph);
+    const canvasTree = routerInstance.buildCanvasTree(graph);
     const paintingTree = canvasTree.paint(rootFigure);
     return paintingTree; }
+
+
+function bodyFigure() {
+    const rootShape = new shape.Rectangle(
+        860,
+        640);
+    const container = d3.select("body")
+        .append("svg")
+            .attr("width", rootShape.x)
+            .attr("height", rootShape.y)
+        .append("g")
+            .attr("transform", `translate(${rootShape.x / 2}, ${rootShape.y / 2})`);
+    return new figure.Figure(
+        rootShape,
+        container);}
 
 exports.show = show;
 exports.stencil = stencil;

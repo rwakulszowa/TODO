@@ -5,7 +5,7 @@ import canvasTree from "./canvastree"
 
 class SimpleRouter {
 
-    static patterns() {
+    patterns() {
         return [
             {
                 label: "Nil",
@@ -22,7 +22,7 @@ class SimpleRouter {
                     test.hasNKeys(4)),
                 stencil: stencil.Scatter }]; }  //TODO: use functions as stencils, not classes
 
-    static route(dataGraphNode) {
+    route(dataGraphNode) {
         const matches = this.patterns().filter(
             pattern => pattern.test(dataGraphNode));
         if (matches.length > 0) {
@@ -31,7 +31,7 @@ class SimpleRouter {
             console.log(`No match for ${JSON.stringify(dataGraphNode, 0, 4)}`);
             return null; }}
 
-    static buildCanvasTree(dataGraphNode) {
+    buildCanvasTree(dataGraphNode) {
         const match = this.route(dataGraphNode);
         if (match && dataGraphNode.child) {
             const data = dataGraphNode.child.nodes.map(n => n.value);
