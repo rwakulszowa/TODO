@@ -33,9 +33,10 @@ const hasNKeys = n => o => {
         Object.keys(o).length == n; }
 
 const hasKeys = keys => o => {
-    keys = new Set(keys);
+    const objKeys = new Set(
+        Object.keys(o));
     return isObject(o) &&
-        Object.keys(o).every(k => keys.has(k)); }
+        keys.every(k => objKeys.has(k)); }
 
 const isDataGraphLeaf = dgNode => !dgNode.child;
 
@@ -58,6 +59,7 @@ export default {
     isArrayOf,
     isObject,
     isPlainData,
+    hasKeys,
     hasNKeys,
     isDataGraphLeaf,
     isRawDataGraph };
