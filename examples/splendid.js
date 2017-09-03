@@ -58,6 +58,176 @@ class Figure {
 var figure = {
     Figure };
 
+//TODO: some kinda macro / template to automate exports
+//TODO: convert to a class with utils for combining multiple tests
+const alwaysTrue = () => true;
+
+const dataGraphChildValues = t => dgNode => {
+    return dgNode.child &&
+        dgNode.child.nodes.map(n => n.value).every(t); };
+
+const isInstance = cls => obj => obj.constructor == cls;
+
+const isBoolean = isInstance(Boolean);
+
+const isNumber = isInstance(Number);
+
+const isString = isInstance(String);
+
+const isArray = isInstance(Array);
+
+const isArrayOf = t => arr => {
+    return isArray(arr) && arr.every(t); };
+
+const isObject = isInstance(Object);
+
+const isPlainData = obj => {
+    const tests = [
+        isBoolean,
+        isNumber,
+        isString];
+    return tests.some(t => t(obj));};
+
+const hasNKeys = n => o => {
+    return isObject(o) &&
+        Object.keys(o).length == n; };
+
+const hasKeys = keys => o => {
+    keys = new Set(keys);
+    return isObject(o) &&
+        Object.keys(o).every(k => keys.has(k)); };
+
+const isDataGraphLeaf = dgNode => !dgNode.child;
+
+const isRawDataGraph = obj => {
+    const keys = [
+        "value",
+        "children",
+        "network"];
+    return hasNKeys(keys.length)(obj) &&
+        hasKeys(keys)(obj); };
+
+var test = {
+    alwaysTrue,
+    dataGraphChildValues,
+    isInstance,
+    isBoolean,
+    isNumber,
+    isString,
+    isArray,
+    isArrayOf,
+    isObject,
+    isPlainData,
+    hasNKeys,
+    isDataGraphLeaf,
+    isRawDataGraph };
+
+var utils = {};
+
+utils.groupByKeys = function(seq, keys) {
+    var ans = new Map();
+    for (var obj of seq) {
+        const complexKey = {};
+        for (var key of keys) {
+            complexKey[key] = obj[key];
+        }
+        const strKey = JSON.stringify(complexKey);
+        if (ans.has(strKey)) {
+            ans.get(strKey).data.push(obj);
+        } else {
+            const entry = complexKey;
+            entry.data = [obj];
+            ans.set(strKey, entry);
+        }
+    }
+    return [...ans.keys()].map(key => ans.get(key));
+};
+
+utils.renameProperty = function(obj, oldName, newName) {
+    obj[newName] = obj[oldName];
+    delete obj[oldName];
+    return obj;
+};
+
+utils.mapTree = function(tree, fun) {
+    fun(tree);
+    if (tree.children) {
+        tree.children.forEach(
+            t => utils.mapTree(t, fun));
+    }
+    return tree;
+};
+
+utils.splitByKeys = function(keys, obj) {
+    const [left, right] = [{}, {}];
+
+    Object.keys(obj).forEach(
+        key => {
+            const value = obj[key];
+            keys.includes(key) ?
+                left[key] = value :
+                right[key] = value; });
+    return [
+        left,
+        right];
+};
+
+class SimpleCoercer {  //TODO: subclass router, rename current router to CanvasTreeBuilder?; return datagraphs from here and rename this to dataGraphBuilder?
+
+    patterns() {
+        return [
+            {
+                test: test.isPlainData,
+                processor: obj => {
+                    return {
+                      value: { x: obj, y: obj },  //FIXME: convert to 1D after implementing a 1D stencil
+                      children: [],
+                      network: [] };}},
+            {
+                test: test.isArray,  //FIXME: should check and coerce elements to a common "type"
+                processor: arr => {
+                    return {
+                      value: { x: 0, y: 0 },
+                      children: arr.map(
+                          this.coerce,
+                          this),
+                      network: [] };}},
+            {
+                test: test.isRawDataGraph,
+                processor: x => x },
+            {
+                test: test.isObject,
+                processor: obj => {
+                    const keywords = [
+                        "value",
+                        "children",
+                        "network"];
+                    const [taken, remainder] = utils.splitByKeys(
+                        keywords,
+                        obj);
+                    return {
+                        value: taken.value || remainder,  //FIXME: much more specific handling needed
+                        children: taken.children || [],
+                        network: taken.network || [] };}}]}
+
+    coerce(data) {
+        const match = this.match(data);
+        return match.processor(data);}
+
+    match(data) {
+      let self = this;
+      const matches = this.patterns().filter(
+          pattern => pattern.test(data));
+      if (matches.length > 0) {
+          return matches[0] }
+      else {
+          console.log(`No match for ${JSON.stringify(dataGraphNode, 0, 4)}`);
+          return null; }}}
+
+
+var coercer = {
+    SimpleCoercer };
+
 class Shape {
 
     inner(target) {
@@ -398,30 +568,6 @@ var stencil = {
     Scatter,
     Squares };
 
-const alwaysTrue = () => true;
-
-const dataGraphChildValues = t => dgNode => {
-    return dgNode.child &&
-        dgNode.child.nodes.map(n => n.value).every(t); };
-
-const isObject = o => {
-    return o !== null &&
-        !Array.isArray(o) &&
-        typeof o === "object"; };
-
-const hasNKeys = n => o => {
-    return isObject(o) &&
-        Object.keys(o).length == n; };
-
-const isDataGraphLeaf = dgNode => !dgNode.child;
-
-var test = {
-    alwaysTrue,
-    dataGraphChildValues,
-    isObject,
-    hasNKeys,
-    isDataGraphLeaf };
-
 class PaintingTree {
 
     dumps() {  //TODO: move to utils
@@ -559,48 +705,14 @@ class SimpleRouter {
 var router = {
     SimpleRouter };
 
-var utils = {};
-
-utils.groupByKeys = function(seq, keys) {
-    var ans = new Map();
-    for (var obj of seq) {
-        const complexKey = {};
-        for (var key of keys) {
-            complexKey[key] = obj[key];
-        }
-        const strKey = JSON.stringify(complexKey);
-        if (ans.has(strKey)) {
-            ans.get(strKey).data.push(obj);
-        } else {
-            const entry = complexKey;
-            entry.data = [obj];
-            ans.set(strKey, entry);
-        }
-    }
-    return [...ans.keys()].map(key => ans.get(key));
-};
-
-utils.renameProperty = function(obj, oldName, newName) {
-    obj[newName] = obj[oldName];
-    delete obj[oldName];
-    return obj;
-};
-
-utils.mapTree = function(tree, fun) {
-    fun(tree);
-    if (tree.children) {
-        tree.children.forEach(
-            t => utils.mapTree(t, fun));
-    }
-    return tree;
-};
-
-function show(data, rootFigure, routerInstance) {
+function show(data, rootFigure, routerInstance, coercerInstance) {
     rootFigure = rootFigure || bodyFigure();
     routerInstance = routerInstance || new router.SimpleRouter();
+    coercerInstance = coercerInstance || new coercer.SimpleCoercer();
 
-    const graph = dataGraph.makeNode(data);
-    const canvasTree = routerInstance.buildCanvasTree(graph);
+    const coercedData = coercerInstance.coerce(data);
+    const graph = dataGraph.makeNode(coercedData);
+    const canvasTree = routerInstance.buildCanvasTree(graph);  //FIXME: router should have access to figure
     const paintingTree = canvasTree.paint(rootFigure);
     return paintingTree; }
 
@@ -629,6 +741,7 @@ exports.test = test;
 exports.shape = shape;
 exports.figure = figure;
 exports.utils = utils;
+exports.coercer = coercer;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 

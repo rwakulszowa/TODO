@@ -1,15 +1,18 @@
 import dataGraph from "./src/datagraph"
 import figure from "./src/figure"
+import coercer from "./src/coercer"
 import router from "./src/router"
 import shape from "./src/shape"
 
 
-function show(data, rootFigure, routerInstance) {
+function show(data, rootFigure, routerInstance, coercerInstance) {
     rootFigure = rootFigure || bodyFigure();
     routerInstance = routerInstance || new router.SimpleRouter();
+    coercerInstance = coercerInstance || new coercer.SimpleCoercer();
 
-    const graph = dataGraph.makeNode(data);
-    const canvasTree = routerInstance.buildCanvasTree(graph);
+    const coercedData = coercerInstance.coerce(data);
+    const graph = dataGraph.makeNode(coercedData);
+    const canvasTree = routerInstance.buildCanvasTree(graph);  //FIXME: router should have access to figure
     const paintingTree = canvasTree.paint(rootFigure);
     return paintingTree; }
 
@@ -39,3 +42,4 @@ export {default as test} from "./src/test";
 export {default as shape} from "./src/shape";
 export {default as figure} from "./src/figure";
 export {default as utils} from "./src/utils";
+export {default as coercer} from "./src/coercer";

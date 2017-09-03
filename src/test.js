@@ -44,8 +44,8 @@ const isRawDataGraph = obj => {
         "value",
         "children",
         "network"];
-    return hasNKeys(keys.length) &&
-        hasKeys(keys); }
+    return hasNKeys(keys.length)(obj) &&
+        hasKeys(keys)(obj); }
 
 export default {
     alwaysTrue,
