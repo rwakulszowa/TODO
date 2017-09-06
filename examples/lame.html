@@ -53,5 +53,6 @@ graphData.children = graphData.children.map(
         network: randomNumArray(4).map(_ => [randInt(4), randInt(4)]) }));
 
 var ans = splendid.show(graphData);
+var ans2 = splendid.show(ans.canvasNode.coerce());
 
 </script>

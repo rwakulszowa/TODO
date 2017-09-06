@@ -48,4 +48,21 @@ utils.splitByKeys = function(keys, obj) {
         right];
 }
 
+utils.flattenTree = function(node) {
+
+    function flatmap(f, arr) {
+        const nested = arr.map(f);
+        return nested.reduce(
+            (acc, el) => acc.concat(el),
+            []);}
+
+    function inner(acc, node) {  //NOTE: returns references, not unwrapped values
+        var children = flatmap(
+            n => inner(acc, n),
+            node.children);
+        children.push(node);
+        return children; }
+
+    return inner([], node);}
+
 export default utils;

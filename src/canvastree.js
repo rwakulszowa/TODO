@@ -37,7 +37,13 @@ class CanvasNode extends CanvasTree {
         return new paintingTree.PaintingNode(
             this,
             figure,
-            childrenPaintings); }}
+            childrenPaintings); }
+
+
+    coerce() {  //TODO: return a coercer test + processor?
+        return {
+            value: 1,  //TODO: return more specific data
+            children: this.children.map(c => c.coerce())};}}
 
 
 class CanvasLeaf extends CanvasTree {
@@ -52,7 +58,12 @@ class CanvasLeaf extends CanvasTree {
     paint(container, shape) {
         return new paintingTree.PaintingLeaf(
             this,
-            container)}}
+            container)}
+
+    coerce() {
+        return {
+            value: 0,
+            children: []};}}
 
 
 export default {

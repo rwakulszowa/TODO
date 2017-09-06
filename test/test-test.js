@@ -27,3 +27,14 @@ tape("hasKeys returns false when keys are absent", function(test) {
     test.false(
         splendidTest.hasKeys(keys)(obj));
     test.end(); })
+
+tape("isTree returns true for a linked list with explicit empty children", function(test) {
+    const tree = {
+        value: 1,
+        children: [{
+            value: 2,
+            children: [] }]};
+
+    test.true(
+        splendidTest.isTree(tree));
+    test.end(); })

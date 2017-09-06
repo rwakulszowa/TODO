@@ -6,7 +6,7 @@ const dataGraphChildValues = t => dgNode => {
     return dgNode.child &&
         dgNode.child.nodes.map(n => n.value).every(t); };
 
-const isInstance = cls => obj => obj.constructor == cls;
+const isInstance = cls => obj => obj && obj.constructor == cls;
 
 const isBoolean = isInstance(Boolean);
 
@@ -48,6 +48,16 @@ const isRawDataGraph = obj => {
     return hasNKeys(keys.length)(obj) &&
         hasKeys(keys)(obj); }
 
+const isTree = node => {
+    //FIXME: there are many more ways to represent a tree
+    const treeKeys = [
+        "value",
+        "children"];
+    return isObject(node) &&
+      hasKeys(treeKeys)(node) &&
+      isArray(node.children) &&
+      node.children.every(isTree); }
+
 export default {
     alwaysTrue,
     dataGraphChildValues,
@@ -62,4 +72,5 @@ export default {
     hasKeys,
     hasNKeys,
     isDataGraphLeaf,
-    isRawDataGraph };
+    isRawDataGraph,
+    isTree };

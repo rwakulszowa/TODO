@@ -26,6 +26,43 @@ class SimpleCoercer {  //TODO: subclass router, rename current router to CanvasT
                 test: test.isRawDataGraph,
                 processor: x => x },
             {
+                test: test.isTree,
+                processor: node => {
+
+                    function randInt(limit) {
+                        return Math.floor(
+                            Math.random() * limit);};  //FIXME: temporary hack to make nodes visible; TODO: 1D stencil for trees with undefined x and y (generated dynamically inside the Stencil)
+
+                    function valueToGraph(val) {  //FIXME: a more fancy way to call the coercer recursively
+                        return {
+                            value: {
+                                x: randInt(100),
+                                y: randInt(100),
+                                z: val,
+                                w: val },
+                            children: [],
+                            network: [] };};
+
+                    const flatTree = utils.flattenTree(node);
+
+                    const indexedTree = {
+                        nodes: [],
+                        edges: [] };
+
+                    flatTree.forEach(
+                        (node, index) => {
+                            indexedTree.nodes.push(node.value);
+                            node.children.forEach(
+                                child => {
+                                    const childIndex = flatTree.indexOf(child);
+                                    indexedTree.edges.push(
+                                        [index, childIndex]);})});
+
+                    return {
+                        value: { x: 0, y: 0 },
+                        children: indexedTree.nodes.map(valueToGraph),
+                        network: indexedTree.edges };}},
+            {
                 test: test.isObject,
                 processor: obj => {
                     const keywords = [

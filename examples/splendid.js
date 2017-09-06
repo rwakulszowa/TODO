@@ -66,7 +66,7 @@ const dataGraphChildValues = t => dgNode => {
     return dgNode.child &&
         dgNode.child.nodes.map(n => n.value).every(t); };
 
-const isInstance = cls => obj => obj.constructor == cls;
+const isInstance = cls => obj => obj && obj.constructor == cls;
 
 const isBoolean = isInstance(Boolean);
 
@@ -93,9 +93,10 @@ const hasNKeys = n => o => {
         Object.keys(o).length == n; };
 
 const hasKeys = keys => o => {
-    keys = new Set(keys);
+    const objKeys = new Set(
+        Object.keys(o));
     return isObject(o) &&
-        Object.keys(o).every(k => keys.has(k)); };
+        keys.every(k => objKeys.has(k)); };
 
 const isDataGraphLeaf = dgNode => !dgNode.child;
 
@@ -106,6 +107,16 @@ const isRawDataGraph = obj => {
         "network"];
     return hasNKeys(keys.length)(obj) &&
         hasKeys(keys)(obj); };
+
+const isTree = node => {
+    //FIXME: there are many more ways to represent a tree
+    const treeKeys = [
+        "value",
+        "children"];
+    return isObject(node) &&
+      hasKeys(treeKeys)(node) &&
+      isArray(node.children) &&
+      node.children.every(isTree); };
 
 var test = {
     alwaysTrue,
@@ -118,9 +129,11 @@ var test = {
     isArrayOf,
     isObject,
     isPlainData,
+    hasKeys,
     hasNKeys,
     isDataGraphLeaf,
-    isRawDataGraph };
+    isRawDataGraph,
+    isTree };
 
 var utils = {};
 
@@ -172,6 +185,23 @@ utils.splitByKeys = function(keys, obj) {
         right];
 };
 
+utils.flattenTree = function(node) {
+
+    function flatmap(f, arr) {
+        const nested = arr.map(f);
+        return nested.reduce(
+            (acc, el) => acc.concat(el),
+            []);}
+
+    function inner(acc, node) {  //NOTE: returns references, not unwrapped values
+        var children = flatmap(
+            n => inner(acc, n),
+            node.children);
+        children.push(node);
+        return children; }
+
+    return inner([], node);};
+
 class SimpleCoercer {  //TODO: subclass router, rename current router to CanvasTreeBuilder?; return datagraphs from here and rename this to dataGraphBuilder?
 
     patterns() {
@@ -195,6 +225,43 @@ class SimpleCoercer {  //TODO: subclass router, rename current router to CanvasT
             {
                 test: test.isRawDataGraph,
                 processor: x => x },
+            {
+                test: test.isTree,
+                processor: node => {
+
+                    function randInt(limit) {
+                        return Math.floor(
+                            Math.random() * limit);}  //FIXME: temporary hack to make nodes visible; TODO: 1D stencil for trees with undefined x and y (generated dynamically inside the Stencil)
+
+                    function valueToGraph(val) {  //FIXME: a more fancy way to call the coercer recursively
+                        return {
+                            value: {
+                                x: randInt(100),
+                                y: randInt(100),
+                                z: val,
+                                w: val },
+                            children: [],
+                            network: [] };}
+
+                    const flatTree = utils.flattenTree(node);
+
+                    const indexedTree = {
+                        nodes: [],
+                        edges: [] };
+
+                    flatTree.forEach(
+                        (node, index) => {
+                            indexedTree.nodes.push(node.value);
+                            node.children.forEach(
+                                child => {
+                                    const childIndex = flatTree.indexOf(child);
+                                    indexedTree.edges.push(
+                                        [index, childIndex]);});});
+
+                    return {
+                        value: { x: 0, y: 0 },
+                        children: indexedTree.nodes.map(valueToGraph),
+                        network: indexedTree.edges };}},
             {
                 test: test.isObject,
                 processor: obj => {
@@ -635,7 +702,13 @@ class CanvasNode extends CanvasTree {
         return new paintingTree.PaintingNode(
             this,
             figure,
-            childrenPaintings); }}
+            childrenPaintings); }
+
+
+    coerce() {  //TODO: return a coercer test + processor?
+        return {
+            value: 1,  //TODO: return more specific data
+            children: this.children.map(c => c.coerce())};}}
 
 
 class CanvasLeaf extends CanvasTree {
@@ -650,7 +723,12 @@ class CanvasLeaf extends CanvasTree {
     paint(container, shape) {
         return new paintingTree.PaintingLeaf(
             this,
-            container)}}
+            container)}
+
+    coerce() {
+        return {
+            value: 0,
+            children: []};}}
 
 
 var canvasTree = {
