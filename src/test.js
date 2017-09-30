@@ -16,16 +16,24 @@ const isString = isInstance(String);
 
 const isArray = isInstance(Array);
 
+const isNull = x => x ===null;
+
+const isUndefined = x => x === undefined;
+
 const isArrayOf = t => arr => {
     return isArray(arr) && arr.every(t); };
 
 const isObject = isInstance(Object);
 
+const isObjectLike = obj => typeof obj === "object";
+
 const isPlainData = obj => {
     const tests = [
         isBoolean,
         isNumber,
-        isString];
+        isString,
+        isNull,
+        isUndefined];
     return tests.some(t => t(obj));}
 
 const hasNKeys = n => o => {
@@ -65,9 +73,12 @@ export default {
     isBoolean,
     isNumber,
     isString,
+    isNull,
+    isUndefined,
     isArray,
     isArrayOf,
     isObject,
+    isObjectLike,
     isPlainData,
     hasKeys,
     hasNKeys,
