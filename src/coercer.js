@@ -1,4 +1,5 @@
 import test from "./test"
+import tree from "./tree"
 import utils from "./utils"
 
 
@@ -76,46 +77,37 @@ class SimpleCoercer {  //TODO: subclass router, rename current router to CanvasT
           console.log(`No match for ${JSON.stringify(dataGraphNode, 0, 4)}`);
           return null; }}}
 
-//TODO: utility class to store trees with references, convertible to an indexed tree (find some external tree / graph processing library)
-function treeProcessor(key, node) {
-    //NOTE: expects a tree of Node = { value: ?, children: [Node]}
 
-    function randInt(limit) {
-        return Math.floor(
-            Math.random() * limit);};  //FIXME: temporary hack to make nodes visible; TODO: 1D stencil for trees with undefined x and y (generated dynamically inside the Stencil); TODO: 0D stencil for nodes defined purely by their network
-
-    function valueToGraph(val) {  //FIXME: a more fancy way to call the coercer recursively
-        return {
+const treeProcessor = makeTreeProcessor(
+    (nodeWrapper, index) => (
+        {
             value: {
-                x: randInt(100),
-                y: randInt(100),
-                z: val,
-                w: val },
+                x: index,
+                y: nodeWrapper.depth,
+                z: nodeWrapper.node.value,
+                w: nodeWrapper.node.value },
             children: [],
-            network: [] };};
-
-    const flatTree = utils.flattenTree(node);
-
-    const indexedTree = {
-        nodes: [],
-        edges: [] };
-
-    flatTree.forEach(
-        (node, index) => {
-            indexedTree.nodes.push(node.value);
-            node.children.forEach(
-                child => {
-                    const childIndex = flatTree.indexOf(child);
-                    indexedTree.edges.push(
-                        [index, childIndex]);})});
-
-    return {
-        value: { x: 0, y: 0 },
-        children: indexedTree.nodes.map(valueToGraph),
-        network: indexedTree.edges };}
+            network: [] }));
 
 
-function objectTree(key, node) {  //NOTE: dumps the keys only, ignores values
+function makeTreeProcessor(nodeMapper) {  //TODO: consider making this a tree.Node method
+
+    function inner(key, obj) {
+        const root = tree.buildTree(obj);
+        const flatTree = root.flatten();
+        const children = flatTree.map(nodeMapper);
+        const network = utils.flattenArray(
+            flatTree.map(n => n.edges));
+
+        return {
+            value: { x: 0, y: 0 },  //FIXME: use key here
+            children,
+            network };}
+
+    return inner; }
+
+
+function objectTree(key, node) {
 
     function handlePlain(key, datum) {
         let value = Number(key) || 0;  //FIXME: allow non numeric values

@@ -196,22 +196,76 @@ utils.splitByKeys = function(keys, obj) {
         right];
 };
 
-utils.flattenTree = function(node) {
+utils.flattenArray = function(arr) {
+    return arr.length == 0
+        ? arr
+        : arr.reduce(
+            (acc, el) => acc.concat(el)); };
 
-    function flatmap(f, arr) {
-        const nested = arr.map(f);
-        return nested.reduce(
-            (acc, el) => acc.concat(el),
-            []);}
+//TODO: replace `children` with `neighbours`, rename to graph.js
+class Node {
+    constructor(value, children) {
+        this.value = value;
+        this.children = children || [];
+    }
 
-    function inner(acc, node) {  //NOTE: returns references, not unwrapped values
-        var children = flatmap(
-            n => inner(acc, n),
-            node.children);
-        children.push(node);
-        return children; }
+    flatten() {
 
-    return inner([], node);};
+        let flattenArray = arr =>
+            arr.length == 0
+            ? arr
+            : arr.reduce(
+                (acc, el) => acc.concat(el));
+
+        function dig(node, depth) {
+
+            let wrappedNode = {  //TODO: NodeWrapped / Result class
+                node,
+                depth,
+                children: node.children };
+
+            let children = utils.flattenArray(
+                node.children.map(  // assumes a valid (acyclic) tree
+                    child => dig(child, depth + 1)));
+
+            children.unshift(wrappedNode);
+            return children; }
+
+        function indexify(wrappedNodes) {  // [{ Node, depth, [Node] }] -> [{ Node, depth, [[indexFrom, indexTo]] }]
+
+            let nodes = wrappedNodes.map(wn => wn.node);
+
+            function indexifySingle(nodeWrapper, index) {
+                const { node, depth, children } = nodeWrapper;
+
+                const edges = children.map(
+                    node => [
+                        index,
+                        nodes.indexOf(node)]);
+
+                return {
+                    node,
+                    depth,
+                    edges }; }
+
+            //FIXME: obviously O(n^2), use a Set
+            return wrappedNodes.map(indexifySingle); }
+
+        return indexify(
+            dig(
+                this,
+                0)); }}
+
+
+function buildTree(nodeObj) {
+    return new Node(
+        nodeObj.value,
+        nodeObj.children.map(buildTree)); }
+
+
+var tree = {
+    buildTree,
+    Node };
 
 class Pattern {
     constructor(label, test$$1, processor) {
@@ -287,46 +341,37 @@ class SimpleCoercer {  //TODO: subclass router, rename current router to CanvasT
           console.log(`No match for ${JSON.stringify(dataGraphNode, 0, 4)}`);
           return null; }}}
 
-//TODO: utility class to store trees with references, convertible to an indexed tree (find some external tree / graph processing library)
-function treeProcessor(key, node) {
-    //NOTE: expects a tree of Node = { value: ?, children: [Node]}
 
-    function randInt(limit) {
-        return Math.floor(
-            Math.random() * limit);}  //FIXME: temporary hack to make nodes visible; TODO: 1D stencil for trees with undefined x and y (generated dynamically inside the Stencil); TODO: 0D stencil for nodes defined purely by their network
-
-    function valueToGraph(val) {  //FIXME: a more fancy way to call the coercer recursively
-        return {
+const treeProcessor = makeTreeProcessor(
+    (nodeWrapper, index) => (
+        {
             value: {
-                x: randInt(100),
-                y: randInt(100),
-                z: val,
-                w: val },
+                x: index,
+                y: nodeWrapper.depth,
+                z: nodeWrapper.node.value,
+                w: nodeWrapper.node.value },
             children: [],
-            network: [] };}
-
-    const flatTree = utils.flattenTree(node);
-
-    const indexedTree = {
-        nodes: [],
-        edges: [] };
-
-    flatTree.forEach(
-        (node, index) => {
-            indexedTree.nodes.push(node.value);
-            node.children.forEach(
-                child => {
-                    const childIndex = flatTree.indexOf(child);
-                    indexedTree.edges.push(
-                        [index, childIndex]);});});
-
-    return {
-        value: { x: 0, y: 0 },
-        children: indexedTree.nodes.map(valueToGraph),
-        network: indexedTree.edges };}
+            network: [] }));
 
 
-function objectTree(key, node) {  //NOTE: dumps the keys only, ignores values
+function makeTreeProcessor(nodeMapper) {  //TODO: consider making this a tree.Node method
+
+    function inner(key, obj) {
+        const root = tree.buildTree(obj);
+        const flatTree = root.flatten();
+        const children = flatTree.map(nodeMapper);
+        const network = utils.flattenArray(
+            flatTree.map(n => n.edges));
+
+        return {
+            value: { x: 0, y: 0 },  //FIXME: use key here
+            children,
+            network };}
+
+    return inner; }
+
+
+function objectTree(key, node) {
 
     function handlePlain(key, datum) {
         let value = Number(key) || 0;  //FIXME: allow non numeric values
@@ -347,9 +392,9 @@ function objectTree(key, node) {  //NOTE: dumps the keys only, ignores values
             ? handlePlain(key, value)
             : handleComplex(key, value); }
 
-    const tree = treeify(key, node);
+    const tree$$1 = treeify(key, node);
 
-    return treeProcessor(key, tree); }
+    return treeProcessor(key, tree$$1); }
 
 
 var coercer = {
@@ -880,6 +925,7 @@ exports.shape = shape;
 exports.figure = figure;
 exports.utils = utils;
 exports.coercer = coercer;
+exports.tree = tree;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 

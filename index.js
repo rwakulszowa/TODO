@@ -43,3 +43,4 @@ export {default as shape} from "./src/shape";
 export {default as figure} from "./src/figure";
 export {default as utils} from "./src/utils";
 export {default as coercer} from "./src/coercer";
+export {default as tree} from "./src/tree";
