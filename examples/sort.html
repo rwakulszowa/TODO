@@ -2,9 +2,8 @@
 <html>
 <head>
 <meta charset="utf-8">
-<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="../../js_res/d3.v4.min.js"></script>
 <script src="splendid.js"></script>
-<script src="https://rawgit.com/rwakulszowa/d3-mesh/v0.3.1/examples/d3-mesh.js"></script>
 <style>
 .bar {
     fill: grey
@@ -77,24 +76,20 @@ digCallTree = function(data) {
     return data;
 }
 
-var routerInstance = new splendid.router.SimpleRouter()
-    .extend([
-        { label: "CallTree", test: isCallTree, process: digCallTree, draw: splendid.draw.nested() }
-    ]);
+var size = { x: 860, y: 640 };
 
-
-var size = { x: 480, y: 320 };
 var container = d3.select("body")
 	  .append("svg")
 	    .attr("width", size.x)
-	    .attr("height", size.y);
+	    .attr("height", size.y)
+    .append("g")
+      .attr("transform", `translate(${size.x / 2}, ${size.y / 2})`);
+
+var shape = new splendid.shape.Rectangle(size.x, size.y);
+var figure = new splendid.figure.Figure(shape, container);
 
 var data = mergeSort([1,5,2,4,8,6,17,9]);
 
-const tree = routerInstance.buildTree(data);
-tree.draw(container, size);
-
+var viz = splendid.show(data, figure);  // The visualization doesn't make much sense, but looks pretty
 </script>
 </head>
-
-Work in progress.
