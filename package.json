@@ -1,15 +1,17 @@
 {
   "name": "splendid",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Simple visualisation of complex data",
   "main": "build/splendid.js",
   "directories": {
-    "example": "examples",
+    "examples": "examples",
     "test": "test"
   },
   "scripts": {
-    "pretest": "rm -rf build && mkdir build && rollup -f umd -n splendid -o build/splendid.js -- index.js && cp build/splendid.js examples/",
-    "test": "tape 'test/**/*-test.js' && python -m webbrowser ./test/lametest.html"
+    "build": "npm run clean && mkdir build && rollup -c",
+    "test": "tape test/**/*-test.js",
+    "pretest": "npm run build",
+    "clean": "rimraf build"
   },
   "repository": {
     "type": "git",
@@ -23,10 +25,15 @@
     "viz"
   ],
   "author": "rwakulszowa",
-  "license": "MIT",
+  "license": "BSD-3-Clause",
   "homepage": "https://github.com/rwakulszowa/splendid",
   "devDependencies": {
+    "rimraf": "^2.6.2",
     "rollup": "^0.37.0",
+    "rollup-plugin-node-resolve": "^3.4.0",
     "tape": "^4"
+  },
+  "dependencies": {
+    "d3": "^5.7.0"
   }
 }

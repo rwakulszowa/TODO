@@ -1,0 +1,57 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="../build/splendid.js"></script>
+<style>
+.node {
+  fill: none;
+  stroke: black
+}
+.edge {
+  fill: none;
+  stroke: black;
+  stroke-width: 0.5px;
+  opacity: 0.5
+}
+</style>
+<body>
+</body>
+<script>
+
+// A lame, simple example
+function randInt(limit, offset) {
+    offset = offset || 0;
+    limit = limit || 9;
+    return Math.floor(Math.random() * (limit - offset) + offset);
+}
+
+function randomNumArray(n) {
+    return Array(n).fill(0).map(x => randInt());
+}
+
+function wrap4(value, index) {
+    return {
+        value: { x: index, y: value, z: value, w: index },
+        children: null };}
+
+function wrap2(value, index) {
+    return {
+        value: { x: index, y: value },
+        children: null };}
+
+var graphData = {
+    value: { x: 0, y: 0 },
+    children: randomNumArray(9).map(wrap2),
+    network: randomNumArray(4).map(_ => [randInt(9), randInt(9)]) };
+
+graphData.children = graphData.children.map(
+    node => ({
+        value: node.value,
+        children: randomNumArray(4).map(wrap4),
+        network: randomNumArray(4).map(_ => [randInt(4), randInt(4)]) }));
+
+var ans = splendid.show(graphData);
+var ans2 = splendid.show(ans.canvasNode.coerce());
+var ans3 = splendid.show(ans);
+</script>

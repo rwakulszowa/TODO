@@ -1,78 +1,67 @@
-var tree = {};
+import utils from "./utils"
 
 
-class Tree {
-    constructor(drawing, match) {
-        this.drawing = drawing;
-        this.match = match;
-    };
-
-    dumps() {
-        return JSON.stringify(
-            this.dump(),
-            null,
-            2);
-    }
-};
-
-
-tree.leaf = class Leaf extends Tree {
-    constructor(drawing, data, match) {
-        super(drawing, match);
-        this.data = data;
+//TODO: replace `children` with `neighbours`, rename to graph.js
+class Node {
+    constructor(value, children) {
+        this.value = value;
+        this.children = children || [];
     }
 
-    dump() {
-        return {
-            "label": this.match.label
-        };
-    }
+    flatten() {
 
-    draw(sel, shape) {
-        const drawing = new this.drawing(
-            this.data,
-            this.match.label
-        );
-        drawing.draw(
-            sel,
-            shape
-        );
-    }
-}
+        let flattenArray = arr =>
+            arr.length == 0
+            ? arr
+            : arr.reduce(
+                (acc, el) => acc.concat(el));
 
+        function dig(node, depth) {
 
-tree.node = class Node extends Tree {
-    constructor(drawing, children, match) {
-        super(drawing, match);
-        this.children = children;
-    }
+            let wrappedNode = {  //TODO: NodeWrapped / Result class
+                node,
+                depth,
+                children: node.children };
 
-    dump() {
-        return {
-            "label": this.match.label,
-            "children": this.childrenFlat().map(x => x.dump()),
-        };
-    }
+            let children = utils.flattenArray(
+                node.children.map(  // assumes a valid (acyclic) tree
+                    child => dig(child, depth + 1)));
 
-    childrenFlat() {
-        return this.children.reduce(
-            function(acc, val) {
-                acc.push(...val);
-                return acc;
-            },
-            []);
-    }
+            children.unshift(wrappedNode);
+            return children; }
 
-    draw(sel, shape) {
-        const drawing = new this.drawing(
-            this.children,
-            this.match.label
-        );
-        drawing.draw(
-            sel, shape
-        );
-    }
-}
+        function indexify(wrappedNodes) {  // [{ Node, depth, [Node] }] -> [{ Node, depth, [[indexFrom, indexTo]] }]
+
+            let nodes = wrappedNodes.map(wn => wn.node);
+
+            function indexifySingle(nodeWrapper, index) {
+                const { node, depth, children } = nodeWrapper;
+
+                const edges = children.map(
+                    node => [
+                        index,
+                        nodes.indexOf(node)]);
+
+                return {
+                    node,
+                    depth,
+                    edges }; }
+
+            //FIXME: obviously O(n^2), use a Set
+            return wrappedNodes.map(indexifySingle); }
+
+        return indexify(
+            dig(
+                this,
+                0)); }}
 
 
-export default tree;
+function buildTree(nodeObj) {
+    return new Node(
+        nodeObj.value,
+        nodeObj.children.map(buildTree)); };
+
+
+export default {
+    buildTree,
+    Node };

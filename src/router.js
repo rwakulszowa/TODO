@@ -1,152 +1,52 @@
-import draw from "./draw"
-import process from "./process"
+import stencil from "./stencil"
 import test from "./test"
-import tree from "./tree"
+import canvasTree from "./canvastree"
 
 
-var router = {};
+class SimpleRouter {
 
-router.SimpleRouter = class {
-
-    constructor() {
-        this.patterns = [
+    patterns() {
+        return [
             {
-                label: "Graph",
-                test: test.objectNestedTest(
-                    {
-                        nodes: test.isArrayOf(x => test.hasKeys(x, ["id"])),
-                        links: test.isExactObjArray(["source", "target"])
-                    }
-                ),
-                draw: draw.force()
-            },
-            {
-                label: "SimpleGraph",
-                test: test.objectNestedTest(
-                    {
-                        nodes: test.isFlatArray,
-                        links: test.isArrayOf(x => Array.isArray(x) && x.length == 2)
-                    }
-                ),
-                process: process.graphify,
-                draw: draw.force()
-            },
-            {
-                label: "Tree",
-                test: test.isNodeTree,
-                process: process.hierarchize,
-                draw: draw.tree()
-            },
-            {
-                label: "ObjectTree",
-                test: test.isObject,
-                process: process.digObjectTree,
-                draw: draw.nested()
-            },
+                label: "Nil",
+                test: test.isDataGraphLeaf,
+                stencil: null },
             {
                 label: "Numbers",
-                test: test.isNumericArray,
-                draw: draw.bar()
-            },
+                test: test.dataGraphChildValues(
+                    test.hasNKeys(2)),
+                stencil: stencil.Squares },
             {
-                label: "XYArray",
-                test: test.isExactObjArray(["x", "y"]),
-                process: process.chain([
-                    process.fillXYZ(["x", "y", "z", "w"]),
-                    process.sortByX]),
-                draw: draw.line()
-            },
-            {
-                label: "XYZArray",
-                test: test.isExactObjArray(["x", "y", "z"]),
-                draw: draw.scatter()
-            },
-            {
-                label: "XYZWArray",
-                test: test.isExactObjArray(["x", "y", "z", "w"]),
-                process: process.sortByX,
-                draw: draw.line()
-            },
-            {
-                label: "AnyArray",
-                test: Array.isArray,
-                process: process.wrapArray,
-                draw: draw.nested()
-            }
-        ]
-    }
+                label: "Scatter",
+                test: test.dataGraphChildValues(
+                    test.hasNKeys(4)),
+                stencil: stencil.Scatter }]; }  //TODO: use functions as stencils, not classes
 
-    isForced(obj) {
-        return obj && Object.keys(obj).indexOf("SplendidLabel") != -1;
-    }
+    route(dataGraphNode) {
+        const matches = this.patterns().filter(
+            pattern => pattern.test(dataGraphNode));
+        if (matches.length > 0) {
+            return matches[0] }
+        else {
+            console.log(`No match for ${JSON.stringify(dataGraphNode, 0, 4)}`);
+            return null; }}
 
-    matchByLabel(data) {
-        return this.patterns.find(x => x.label == data.SplendidLabel);
-    }
+    buildCanvasTree(dataGraphNode) {
+        const match = this.route(dataGraphNode);
+        if (match && dataGraphNode.child) {
+            const data = dataGraphNode.child.nodes.map(n => n.value);
+            const network = dataGraphNode.child.edges;
+            const children = dataGraphNode.child.nodes.map(
+                this.buildCanvasTree,
+                this);
+            return new canvasTree.CanvasNode(
+                data,
+                network,
+                match.stencil,
+                children); }
+        else {
+            return new canvasTree.CanvasLeaf(); }}}
 
-    unwrapForcedData(data) {
-        return data.data;
-    }
 
-    extend(patterns) {
-        this.patterns = patterns.concat(this.patterns);
-        return this;
-    }
-
-    match(data) {
-        for (var pattern of this.patterns) {
-            if (pattern.test(data)) {
-                return pattern;
-            }
-        }
-        return {
-            label: "Ignored",
-            test: () => true,
-            draw: draw.empty()
-        };
-    }
-
-    route(data) {
-        var match;
-
-        if (this.isForced(data)) {
-            match = this.matchByLabel(data);
-            data = this.unwrapForcedData(data);
-        } else {
-            match = this.match(data);
-        }
-
-        const draw = match.draw;
-        data = match.process ? match.process(data) : data;
-
-        return {
-            draw,
-            data,
-            match
-        }
-    }
-
-    buildTree(data) {
-        var t;
-        const routed = this.route(data);
-
-        if (routed.draw.isLeaf()) {
-            t = new tree.leaf(
-                routed.draw,
-                routed.data,
-                routed.match);
-        } else {
-            const children = routed.data.map(
-                arr => arr.map(
-                    d => this.buildTree(d)));
-            t = new tree.node(
-                routed.draw,
-                children,
-                routed.match);
-        }
-
-        return t;
-    }
-};
-
-export default router;
+export default {
+    SimpleRouter };

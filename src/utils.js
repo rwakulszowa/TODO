@@ -34,4 +34,24 @@ utils.mapTree = function(tree, fun) {
     return tree;
 }
 
+utils.splitByKeys = function(keys, obj) {
+    const [left, right] = [{}, {}];
+
+    Object.keys(obj).forEach(
+        key => {
+            const value = obj[key];
+            keys.includes(key) ?
+                left[key] = value :
+                right[key] = value });
+    return [
+        left,
+        right];
+}
+
+utils.flattenArray = function(arr) {
+    return arr.length == 0
+        ? arr
+        : arr.reduce(
+            (acc, el) => acc.concat(el)); }
+
 export default utils;

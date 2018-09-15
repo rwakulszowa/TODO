@@ -1,61 +1,87 @@
-var test = { };
+//TODO: some kinda macro / template to automate exports
+//TODO: convert to a class with utils for combining multiple tests
+const alwaysTrue = () => true;
 
-test.isObject = function(o) {
-    return o !== null &&
-        !Array.isArray(o) &&
-        typeof o === "object";
-}
+const dataGraphChildValues = t => dgNode => {
+    return dgNode.child &&
+        dgNode.child.nodes.map(n => n.value).every(t); };
 
-test.hasKeys = function(o, keys) {
-    if (test.isObject(o)) {
-        var oKeys = Object.keys(o);
-        return keys.every(k => oKeys.indexOf(k) != -1);
-    } else {
-        return false;
-    }
-}
+const isInstance = cls => obj => obj && obj.constructor == cls;
 
-test.hasExactKeys = function(o, keys) {
-    if (test.isObject(o)) {
-        var oKeys = Object.keys(o);
-        return oKeys.length == keys.length &&
-            keys.every(k => oKeys.indexOf(k) != -1);
-    } else {
-        return false;
-    }
-}
+const isBoolean = isInstance(Boolean);
 
-test.isArrayOf = function(subTest) {
-    function inner(data) {
-        return Array.isArray(data) &&
-            data.every(subTest);
-    }
-    return inner;
-}
+const isNumber = isInstance(Number);
 
-test.isNumericArray = test.isArrayOf(Number.isFinite);
+const isString = isInstance(String);
 
-test.isFlatArray = test.isArrayOf(x => !Array.isArray(x));
+const isArray = isInstance(Array);
 
-test.isExactObjArray = function(keys) {
-    return test.isArrayOf(d => test.hasExactKeys(d, keys));
-}
+const isNull = x => x ===null;
 
-test.isNodeTree = function(data) {
-    return test.hasKeys(data, ["children"]);
-}
+const isUndefined = x => x === undefined;
 
-test.objectNestedTest = function(keyTestPairs) {
-    const keys = Object.keys(keyTestPairs);
-    function inner(data) {
-        return test.hasExactKeys(data, keys) &&
-            keys.every(function(key) {
-                var subTest = keyTestPairs[key];
-                var subData = data[key];
-                return subTest(subData);
-            });
-    }
-    return inner;
-}
+const isArrayOf = t => arr => {
+    return isArray(arr) && arr.every(t); };
 
-export default test;
+const isObject = isInstance(Object);
+
+const isObjectLike = obj => typeof obj === "object";
+
+const isPlainData = obj => {
+    const tests = [
+        isBoolean,
+        isNumber,
+        isString,
+        isNull,
+        isUndefined];
+    return tests.some(t => t(obj));}
+
+const hasNKeys = n => o => {
+    return isObject(o) &&
+        Object.keys(o).length == n; }
+
+const hasKeys = keys => o => {
+    const objKeys = new Set(
+        Object.keys(o));
+    return isObject(o) &&
+        keys.every(k => objKeys.has(k)); }
+
+const isDataGraphLeaf = dgNode => !dgNode.child;
+
+const isRawDataGraph = obj => {
+    const keys = [
+        "value",
+        "children",
+        "network"];
+    return hasNKeys(keys.length)(obj) &&
+        hasKeys(keys)(obj); }
+
+const isTree = node => {
+    //FIXME: there are many more ways to represent a tree
+    const treeKeys = [
+        "value",
+        "children"];
+    return isObject(node) &&
+      hasKeys(treeKeys)(node) &&
+      isArray(node.children) &&
+      node.children.every(isTree); }
+
+export default {
+    alwaysTrue,
+    dataGraphChildValues,
+    isInstance,
+    isBoolean,
+    isNumber,
+    isString,
+    isNull,
+    isUndefined,
+    isArray,
+    isArrayOf,
+    isObject,
+    isObjectLike,
+    isPlainData,
+    hasKeys,
+    hasNKeys,
+    isDataGraphLeaf,
+    isRawDataGraph,
+    isTree };
