@@ -8,7 +8,7 @@
     "test": "test"
   },
   "scripts": {
-    "build": "rm -rf build && mkdir build && rollup -c && cp build/splendid.js examples/",
+    "build": "npm run clean && mkdir build && rollup -c",
     "test": "tape test/**/*-test.js",
     "pretest": "npm run build",
     "clean": "rimraf build"
