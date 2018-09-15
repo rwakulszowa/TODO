@@ -1,3 +1,5 @@
+import { select } from 'd3';
+
 import dataGraph from "./src/datagraph"
 import figure from "./src/figure"
 import coercer from "./src/coercer"
@@ -21,7 +23,7 @@ function bodyFigure() {
     const rootShape = new shape.Rectangle(
         860,
         640);
-    const container = d3.select("body")
+    const container = select("body")
         .append("svg")
             .attr("width", rootShape.x)
             .attr("height", rootShape.y)

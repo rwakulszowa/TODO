@@ -1,3 +1,5 @@
+import * as d3 from "d3";
+
 import figure from "./figure"
 import shape from "./shape"
 //TODO: use TypeScript?
